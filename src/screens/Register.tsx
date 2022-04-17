@@ -50,6 +50,7 @@ const Register = () => {
         if (!Object.values(isValid).includes(false)) {
             /** send/save registratin data */
             console.log('handleSignUp', registration);
+            navigation.navigate('Login');
         }
     }, [isValid, registration]);
 
@@ -121,7 +122,7 @@ const Register = () => {
                                 {t('register.subtitle')}
                             </Text>
                             {/* social buttons */}
-                            <Block
+                            {/* <Block
                                 row
                                 center
                                 justify="space-evenly"
@@ -150,8 +151,8 @@ const Register = () => {
                                         color={isDark ? colors.icon : undefined}
                                     />
                                 </Button>
-                            </Block>
-                            <Block
+                            </Block> */}
+                            {/* <Block
                                 row
                                 flex={0}
                                 align="center"
@@ -177,7 +178,7 @@ const Register = () => {
                                     start={[1, 0]}
                                     gradient={gradients.divider}
                                 />
-                            </Block>
+                            </Block> */}
                             {/* form inputs */}
                             <Block paddingHorizontal={sizes.sm}>
                                 <Input
