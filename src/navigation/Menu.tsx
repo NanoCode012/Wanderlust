@@ -67,7 +67,7 @@ const DrawerContent = (
 ) => {
     const {navigation} = props;
     const {t} = useTranslation();
-    const {isDark, handleIsDark} = useData();
+    const {isDark, handleIsDark, handleIsLoggedIn} = useData();
     const [active, setActive] = useState('Register');
     const {assets, colors, gradients, sizes} = useTheme();
     const labelColor = colors.text;
@@ -168,18 +168,18 @@ const DrawerContent = (
                     gradient={gradients.menu}
                 />
 
-                <Text semibold transform="uppercase" opacity={0.5}>
+                {/* <Text semibold transform="uppercase" opacity={0.5}>
                     {t('menu.documentation')}
-                </Text>
+                </Text> */}
 
                 <Button
                     row
                     justify="flex-start"
                     marginTop={sizes.sm}
                     marginBottom={sizes.s}
-                    onPress={() =>
-                        handleWebLink('https://github.com/creativetimofficial')
-                    }>
+                    onPress={() => {
+                        handleIsLoggedIn(false);
+                    }}>
                     <Block
                         flex={0}
                         radius={6}
@@ -194,11 +194,11 @@ const DrawerContent = (
                             width={14}
                             height={14}
                             color={colors.black}
-                            source={assets.documentation}
+                            source={assets.close}
                         />
                     </Block>
                     <Text p color={labelColor}>
-                        {t('menu.started')}
+                        {t('menu.logout')}
                     </Text>
                 </Button>
 
