@@ -11,7 +11,9 @@ export default () => {
     const screenOptions = useScreenOptions();
 
     return (
-        <Stack.Navigator screenOptions={screenOptions.stack}>
+        <Stack.Navigator
+            screenOptions={screenOptions.stack}
+            initialRouteName="Register">
             <Stack.Screen
                 name="Home"
                 component={Home}
