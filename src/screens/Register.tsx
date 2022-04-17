@@ -276,7 +276,7 @@ const Register = () => {
                                 shadow={!isAndroid}
                                 marginVertical={sizes.s}
                                 marginHorizontal={sizes.sm}
-                                onPress={() => navigation.navigate('Pro')}>
+                                onPress={() => navigation.navigate('Login')}>
                                 <Text bold primary transform="uppercase">
                                     {t('common.signin')}
                                 </Text>
