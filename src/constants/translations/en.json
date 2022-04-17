@@ -86,6 +86,7 @@
     },
     "menu": {
         "started": "Getting Started",
+        "logout": "Logout",
         "documentation": "Documentation"
     },
     "home": {
@@ -96,6 +97,10 @@
     "register": {
         "title": "Welcome",
         "subtitle": "Register with"
+    },
+    "login": {
+        "title": "Welcome",
+        "subtitle": "Login with"
     },
     "profile": {
         "title": "Profile",
