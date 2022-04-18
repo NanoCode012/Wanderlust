@@ -84,6 +84,8 @@ export interface IUseData {
     handleArticle: (data?: IArticle) => void;
     notifications: INotification[];
     handleNotifications: (data?: INotification[]) => void;
+    isLoggedIn: boolean;
+    handleIsLoggedIn: (isLoggedIn?: boolean) => void;
 }
 
 export interface ITranslate {

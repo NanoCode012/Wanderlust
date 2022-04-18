@@ -31,6 +31,7 @@ export const DataProvider = ({children}: {children: React.ReactNode}) => {
     const [categories, setCategories] = useState<ICategory[]>(CATEGORIES);
     const [articles, setArticles] = useState<IArticle[]>(ARTICLES);
     const [article, setArticle] = useState<IArticle>({});
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     // get isDark mode from storage
     const getIsDark = useCallback(async () => {
@@ -87,10 +88,37 @@ export const DataProvider = ({children}: {children: React.ReactNode}) => {
         [article, setArticle],
     );
 
+    // get isLoggedIn mode from storage
+    const getIsLoggedIn = useCallback(async () => {
+        // get preferance gtom storage
+        const isLoggedInJSON = await Storage.getItem('isLoggedIn');
+
+        if (isLoggedInJSON !== null) {
+            // set isDark / compare if has updated
+            setIsLoggedIn(JSON.parse(isLoggedInJSON));
+        }
+    }, [setIsLoggedIn]);
+
+    // handle isLoggedIn mode
+    const handleIsLoggedIn = useCallback(
+        (payload: boolean) => {
+            // set isDark / compare if has updated
+            setIsLoggedIn(payload);
+            // save preferance to storage
+            Storage.setItem('isLoggedIn', JSON.stringify(payload));
+        },
+        [setIsLoggedIn],
+    );
+
     // get initial data for: isDark & language
     useEffect(() => {
         getIsDark();
     }, [getIsDark]);
+
+    // get initial data for: isLoggedIn
+    useEffect(() => {
+        getIsLoggedIn();
+    }, [getIsLoggedIn]);
 
     // change theme based on isDark updates
     useEffect(() => {
@@ -116,6 +144,8 @@ export const DataProvider = ({children}: {children: React.ReactNode}) => {
         setArticles,
         article,
         handleArticle,
+        isLoggedIn,
+        handleIsLoggedIn,
     };
 
     return (

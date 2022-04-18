@@ -67,8 +67,8 @@ const DrawerContent = (
 ) => {
     const {navigation} = props;
     const {t} = useTranslation();
-    const {isDark, handleIsDark} = useData();
-    const [active, setActive] = useState('Home');
+    const {isDark, handleIsDark, handleIsLoggedIn} = useData();
+    const [active, setActive] = useState('Register');
     const {assets, colors, gradients, sizes} = useTheme();
     const labelColor = colors.text;
 
@@ -168,18 +168,19 @@ const DrawerContent = (
                     gradient={gradients.menu}
                 />
 
-                <Text semibold transform="uppercase" opacity={0.5}>
+                {/* <Text semibold transform="uppercase" opacity={0.5}>
                     {t('menu.documentation')}
-                </Text>
+                </Text> */}
 
                 <Button
                     row
                     justify="flex-start"
                     marginTop={sizes.sm}
                     marginBottom={sizes.s}
-                    onPress={() =>
-                        handleWebLink('https://github.com/creativetimofficial')
-                    }>
+                    onPress={() => {
+                        handleIsLoggedIn(false);
+                        navigation.closeDrawer();
+                    }}>
                     <Block
                         flex={0}
                         radius={6}
@@ -194,11 +195,11 @@ const DrawerContent = (
                             width={14}
                             height={14}
                             color={colors.black}
-                            source={assets.documentation}
+                            source={assets.close}
                         />
                     </Block>
                     <Text p color={labelColor}>
-                        {t('menu.started')}
+                        {t('menu.logout')}
                     </Text>
                 </Button>
 
@@ -220,6 +221,7 @@ const DrawerContent = (
 /* drawer menu navigation */
 export default () => {
     const {gradients} = useTheme();
+    const {isLoggedIn} = useData();
 
     return (
         <Block gradient={gradients.light}>
@@ -233,7 +235,8 @@ export default () => {
                     width: '60%',
                     borderRightWidth: 0,
                     backgroundColor: 'transparent',
-                }}>
+                }}
+                screenOptions={{gestureEnabled: isLoggedIn}}>
                 <Drawer.Screen name="Screens" component={ScreensStack} />
             </Drawer.Navigator>
         </Block>
