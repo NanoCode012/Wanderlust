@@ -92,7 +92,7 @@
     "home": {
         "title": "Soft UI",
         "following": "Following",
-        "trending": "Trending"
+        "popular": "Popular"
     },
     "register": {
         "title": "Welcome",

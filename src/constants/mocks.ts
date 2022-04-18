@@ -109,8 +109,8 @@ export const FOLLOWING: IProduct[] = [
     },
 ];
 
-// trending cards
-export const TRENDING: IProduct[] = [
+// popular cards
+export const POPULAR: IProduct[] = [
     {
         id: 1,
         type: 'horizontal',
@@ -653,7 +653,7 @@ export const NOTIFICATIONS: INotification[] = [
 export default {
     USERS,
     FOLLOWING,
-    TRENDING,
+    POPULAR,
     CATEGORIES,
     ARTICLES,
     RECOMMENDATIONS,

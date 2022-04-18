@@ -6,16 +6,16 @@ import {Block, Button, Image, Input, Product, Text} from '../components/';
 const Home = () => {
     const {t} = useTranslation();
     const [tab, setTab] = useState<number>(0);
-    const {following, trending} = useData();
+    const {following, popular} = useData();
     const [products, setProducts] = useState(following);
     const {assets, colors, fonts, gradients, sizes} = useTheme();
 
     const handleProducts = useCallback(
         (tab: number) => {
             setTab(tab);
-            setProducts(tab === 0 ? following : trending);
+            setProducts(tab === 0 ? following : popular);
         },
-        [following, trending, setTab, setProducts],
+        [following, popular, setTab, setProducts],
     );
 
     return (
@@ -84,7 +84,7 @@ const Home = () => {
                             />
                         </Block>
                         <Text p font={fonts?.[tab === 1 ? 'medium' : 'normal']}>
-                            {t('home.trending')}
+                            {t('home.popular')}
                         </Text>
                     </Block>
                 </Button>

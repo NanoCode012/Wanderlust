@@ -375,7 +375,7 @@ const Cards = () => {
                     transform="uppercase"
                     gradient={gradients.primary}
                     marginTop={sizes.sm}>
-                    Trending
+                    Popular
                 </Text>
                 <Text
                     p
