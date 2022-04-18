@@ -68,7 +68,7 @@ const DrawerContent = (
     const {navigation} = props;
     const {t} = useTranslation();
     const {isDark, handleIsDark, handleIsLoggedIn} = useData();
-    const [active, setActive] = useState('Register');
+    const [active, setActive] = useState('Home');
     const {assets, colors, gradients, sizes} = useTheme();
     const labelColor = colors.text;
 
