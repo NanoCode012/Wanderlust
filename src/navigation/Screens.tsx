@@ -2,6 +2,7 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 
 import {
+    Article,
     Articles,
     Components,
     Home,
@@ -37,6 +38,11 @@ export default () => {
                         name="Articles"
                         component={Articles}
                         options={{title: t('navigation.articles')}}
+                    />
+                    <Stack.Screen
+                        name="Article"
+                        component={Article}
+                        // options={{title: t('navigation.article')}}
                     />
                     <Stack.Screen
                         name="Pro"
