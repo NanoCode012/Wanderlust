@@ -1,14 +1,7 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import Storage from '@react-native-async-storage/async-storage';
 
-import {
-    IArticle,
-    ICategory,
-    IProduct,
-    IUser,
-    IUseData,
-    ITheme,
-} from '../constants/types';
+import {IArticle, ICategory, IUser, IUseData, ITheme} from '../constants/types';
 
 import {
     USERS,
@@ -26,8 +19,8 @@ export const DataProvider = ({children}: {children: React.ReactNode}) => {
     const [theme, setTheme] = useState<ITheme>(light);
     const [user, setUser] = useState<IUser>(USERS[0]);
     const [users, setUsers] = useState<IUser[]>(USERS);
-    const [following, setFollowing] = useState<IProduct[]>(FOLLOWING);
-    const [popular, setPopular] = useState<IProduct[]>(POPULAR);
+    const [following, setFollowing] = useState<IArticle[]>(FOLLOWING);
+    const [popular, setPopular] = useState<IArticle[]>(POPULAR);
     const [categories, setCategories] = useState<ICategory[]>(CATEGORIES);
     const [articles, setArticles] = useState<IArticle[]>(ARTICLES);
     const [article, setArticle] = useState<IArticle>({});
