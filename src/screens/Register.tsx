@@ -75,7 +75,7 @@ const Register = () => {
                         radius={sizes.cardRadius}
                         source={assets.background}
                         height={sizes.height * 0.3}>
-                        <Button
+                        {/* <Button
                             row
                             flex={0}
                             justify="flex-start"
@@ -91,7 +91,7 @@ const Register = () => {
                             <Text p white marginLeft={sizes.s}>
                                 {t('common.goBack')}
                             </Text>
-                        </Button>
+                        </Button> */}
 
                         <Text h4 center white marginBottom={sizes.md}>
                             {t('register.title')}
