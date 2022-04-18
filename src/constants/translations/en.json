@@ -1,5 +1,6 @@
 {
     "common": {
+        "anonymous": "Anonymous",
         "appDetails": "App Details",
         "appName": "App name",
         "appVersion": "App version",
@@ -46,7 +47,8 @@
             "one": "1 guest",
             "other": "{{count}} guests",
             "zero": "0 Guests"
-        }
+        },
+        "upvote": "Upvote"
     },
     "app": {
         "name": "Soft UI",
@@ -92,7 +94,14 @@
     "home": {
         "title": "Soft UI",
         "following": "Following",
-        "popular": "Popular"
+        "popular": "Popular",
+        "createPost": {
+            "initialMessage": "Share your thoughts",
+            "title": "Title",
+            "titlePlaceholder": "Give us a few words for a title!",
+            "description": "Description",
+            "backgroundPlaceholder": "Give us a good title!"
+        }
     },
     "register": {
         "title": "Welcome",
