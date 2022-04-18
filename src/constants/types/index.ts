@@ -72,8 +72,8 @@ export interface IUseData {
     handleBasket: (data?: IBasket) => void;
     following: IProduct[];
     setFollowing: (data?: IProduct[]) => void;
-    trending: IProduct[];
-    setTrending: (data?: IProduct[]) => void;
+    popular: IProduct[];
+    setPopular: (data?: IProduct[]) => void;
     categories: ICategory[];
     setCategories: (data?: ICategory[]) => void;
     recommendations: IArticle[];
