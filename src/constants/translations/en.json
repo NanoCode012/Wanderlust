@@ -48,7 +48,8 @@
             "other": "{{count}} guests",
             "zero": "0 Guests"
         },
-        "upvote": "Upvote"
+        "upvote": "Upvote",
+        "cancel": "Cancel"
     },
     "app": {
         "name": "Soft UI",
@@ -100,7 +101,7 @@
             "title": "Title",
             "titlePlaceholder": "Give us a few words for a title!",
             "description": "Description",
-            "backgroundPlaceholder": "Give us a good title!"
+            "descriptionPlaceholder": "Give us a good title!"
         }
     },
     "register": {
