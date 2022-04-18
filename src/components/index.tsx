@@ -7,6 +7,8 @@ import Switch from './Switch';
 import Checkbox from './Checkbox';
 import Image from './Image';
 import Article from './Article';
+import ArticleFull from './ArticleFull';
+import ArticleCard from './ArticleCard';
 import Product from './Product';
 
 export {
@@ -18,6 +20,8 @@ export {
     Checkbox,
     Image,
     Article,
+    ArticleFull,
+    ArticleCard,
     Product,
     Modal,
 };

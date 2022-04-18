@@ -1,31 +1,72 @@
 import React, {useCallback, useState} from 'react';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
-import {Block, Button, Image, Input, Product, Text} from '../components/';
+import {useNavigation} from '@react-navigation/core';
+import {Block, Button, Image, Input, Text, ArticleCard} from '../components/';
+import {IArticle} from '../constants/types';
 
 const Home = () => {
     const {t} = useTranslation();
+    const navigation = useNavigation();
     const [tab, setTab] = useState<number>(0);
-    const {following, popular} = useData();
-    const [products, setProducts] = useState(following);
+    const {following, popular, handleArticle} = useData();
+    const [articles, setArticles] = useState(following);
+
+    const [openCreate, setOpenCreate] = useState(false);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+
     const {assets, colors, fonts, gradients, sizes} = useTheme();
 
-    const handleProducts = useCallback(
+    const handleArticles = useCallback(
         (tab: number) => {
             setTab(tab);
-            setProducts(tab === 0 ? following : popular);
+            setArticles(tab === 0 ? following : popular);
         },
-        [following, popular, setTab, setProducts],
+        [following, popular, setTab, setArticles],
+    );
+
+    const handleArticlePress = useCallback(
+        (article: IArticle) => {
+            handleArticle(article);
+            navigation.navigate('Article');
+        },
+        [handleArticle],
     );
 
     return (
         <Block>
             {/* search input */}
             <Block color={colors.card} flex={0} padding={sizes.padding}>
-                <Input search placeholder={t('common.search')} />
+                {/* Search bar */}
+                {/* <Input search placeholder={t('common.search')} /> */}
+
+                {/* Expanable create post */}
+                {!openCreate ? (
+                    <Button
+                        color={colors.background}
+                        shadow={false}
+                        onPress={() => setOpenCreate(true)}>
+                        <Text p font={fonts?.[tab === 0 ? 'medium' : 'normal']}>
+                            {t('home.createPost.initialMessage')}
+                        </Text>
+                    </Button>
+                ) : (
+                    <Block paddingHorizontal={sizes.sm}>
+                        <Input
+                            autoCapitalize="none"
+                            marginBottom={sizes.m}
+                            label={t('home.createPost.title')}
+                            placeholder={t('home.createPost.titlePlaceholder')}
+                            value={title}
+                            onChangeText={(value) => setTitle(value)}
+                        />
+                        <Input search placeholder={t('common.search')} />
+                    </Block>
+                )}
             </Block>
 
-            {/* toggle products list */}
+            {/* toggle articles list */}
             <Block
                 row
                 flex={0}
@@ -33,7 +74,7 @@ const Home = () => {
                 justify="center"
                 color={colors.card}
                 paddingBottom={sizes.sm}>
-                <Button onPress={() => handleProducts(0)}>
+                <Button onPress={() => handleArticles(0)}>
                     <Block row align="center">
                         <Block
                             flex={0}
@@ -64,7 +105,7 @@ const Home = () => {
                     marginHorizontal={sizes.sm}
                     height={sizes.socialIconSize}
                 />
-                <Button onPress={() => handleProducts(1)}>
+                <Button onPress={() => handleArticles(1)}>
                     <Block row align="center">
                         <Block
                             flex={0}
@@ -90,7 +131,7 @@ const Home = () => {
                 </Button>
             </Block>
 
-            {/* products list */}
+            {/* articles list */}
             <Block
                 scroll
                 paddingHorizontal={sizes.padding}
@@ -101,8 +142,12 @@ const Home = () => {
                     wrap="wrap"
                     justify="space-between"
                     marginTop={sizes.sm}>
-                    {products?.map((product) => (
-                        <Product {...product} key={`card-${product?.id}`} />
+                    {articles?.map((article) => (
+                        <ArticleCard
+                            article={article}
+                            handlePress={() => handleArticlePress(article)}
+                            key={`card-${article?.id}`}
+                        />
                     ))}
                 </Block>
             </Block>
