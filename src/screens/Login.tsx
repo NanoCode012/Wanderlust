@@ -89,7 +89,7 @@ const Login = () => {
                         </Text>
                     </Image>
                 </Block>
-                {/* register form */}
+                {/* login form */}
                 <Block
                     keyboard
                     behavior={!isAndroid ? 'padding' : 'height'}
