@@ -179,6 +179,7 @@ const DrawerContent = (
                     marginBottom={sizes.s}
                     onPress={() => {
                         handleIsLoggedIn(false);
+                        navigation.closeDrawer();
                     }}>
                     <Block
                         flex={0}
@@ -220,6 +221,7 @@ const DrawerContent = (
 /* drawer menu navigation */
 export default () => {
     const {gradients} = useTheme();
+    const {isLoggedIn} = useData();
 
     return (
         <Block gradient={gradients.light}>
@@ -233,7 +235,8 @@ export default () => {
                     width: '60%',
                     borderRightWidth: 0,
                     backgroundColor: 'transparent',
-                }}>
+                }}
+                screenOptions={{gestureEnabled: isLoggedIn}}>
                 <Drawer.Screen name="Screens" component={ScreensStack} />
             </Drawer.Navigator>
         </Block>
