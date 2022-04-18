@@ -5,6 +5,7 @@ import {useData, useTheme, useTranslation} from '../hooks/';
 import {useNavigation} from '@react-navigation/core';
 import {Block, Button, Image, Input, Text, ArticleCard} from '../components/';
 import {IArticle} from '../constants/types';
+import * as ImagePicker from 'expo-image-picker';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -18,8 +19,26 @@ const Home = () => {
     const [openCreate, setOpenCreate] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [selectedImageURI, setSelectedImageURI] = useState('');
 
     const {assets, colors, fonts, gradients, sizes} = useTheme();
+
+    let openImagePickerAsync = async () => {
+        let permissionResult =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (permissionResult.granted === false) {
+            alert('Permission to access camera roll is required!');
+            return;
+        }
+
+        let pickerResult = await ImagePicker.launchImageLibraryAsync();
+        if (pickerResult.cancelled === true) {
+            return;
+        }
+
+        setSelectedImageURI(pickerResult.uri);
+    };
 
     const handleArticles = useCallback(
         (tab: number) => {
@@ -90,15 +109,45 @@ const Home = () => {
                             onChangeText={(value) => setDescription(value)}
                         />
                         <Button
-                            onPress={() => handleCreatePost(false)}
-                            shadow={false}>
+                            paddingVertical={sizes.m}
+                            justify="flex-start"
+                            onPress={openImagePickerAsync}
+                            shadow={false}
+                            flex={0}>
                             <Text
                                 p
                                 font={fonts?.[tab === 0 ? 'medium' : 'normal']}>
-                                {t('common.cancel')}
+                                {t('home.createPost.uploadPhoto')}
                             </Text>
                         </Button>
-                        {/* <Input search placeholder={t('common.search')} /> */}
+                        <Block row justify="center" flex={0}>
+                            <Button
+                                onPress={() => handleCreatePost(false)}
+                                shadow={false}
+                                paddingHorizontal={sizes.s}
+                                paddingVertical={0}
+                                gradient={gradients?.primary}>
+                                <Text
+                                    p
+                                    font={
+                                        fonts?.[tab === 0 ? 'medium' : 'normal']
+                                    }>
+                                    {t('home.createPost.post')}
+                                </Text>
+                            </Button>
+                            <Button
+                                onPress={() => handleCreatePost(false)}
+                                shadow={false}
+                                paddingHorizontal={sizes.s}>
+                                <Text
+                                    p
+                                    font={
+                                        fonts?.[tab === 0 ? 'medium' : 'normal']
+                                    }>
+                                    {t('common.cancel')}
+                                </Text>
+                            </Button>
+                        </Block>
                     </Block>
                 )}
             </Block>
