@@ -1,9 +1,12 @@
 import React, {useCallback, useState} from 'react';
+import {Linking, Platform} from 'react-native';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
 import {useNavigation} from '@react-navigation/core';
 import {Block, Button, Image, Input, Text, ArticleCard} from '../components/';
 import {IArticle} from '../constants/types';
+
+const isAndroid = Platform.OS === 'android';
 
 const Home = () => {
     const {t} = useTranslation();
@@ -34,10 +37,19 @@ const Home = () => {
         [handleArticle],
     );
 
+    const handleCreatePost = useCallback((opt: boolean) => {
+        setOpenCreate(opt);
+        setTitle('');
+        setDescription('');
+    }, []);
+
     return (
         <Block>
             {/* search input */}
-            <Block color={colors.card} flex={0} padding={sizes.padding}>
+            <Block
+                color={colors.card}
+                flex={openCreate ? 2 : 0}
+                padding={sizes.padding}>
                 {/* Search bar */}
                 {/* <Input search placeholder={t('common.search')} /> */}
 
@@ -46,22 +58,47 @@ const Home = () => {
                     <Button
                         color={colors.background}
                         shadow={false}
-                        onPress={() => setOpenCreate(true)}>
+                        onPress={() => handleCreatePost(true)}>
                         <Text p font={fonts?.[tab === 0 ? 'medium' : 'normal']}>
                             {t('home.createPost.initialMessage')}
                         </Text>
                     </Button>
                 ) : (
-                    <Block paddingHorizontal={sizes.sm}>
+                    <Block
+                        flex={2}
+                        scrollEnabled={false}
+                        behavior={!isAndroid ? 'padding' : 'height'}
+                        paddingHorizontal={sizes.sm}
+                        paddingVertical={sizes.s}
+                        color={colors.card}>
                         <Input
                             autoCapitalize="none"
-                            marginBottom={sizes.m}
+                            marginVertical={sizes.m}
                             label={t('home.createPost.title')}
                             placeholder={t('home.createPost.titlePlaceholder')}
                             value={title}
                             onChangeText={(value) => setTitle(value)}
                         />
-                        <Input search placeholder={t('common.search')} />
+                        <Input
+                            autoCapitalize="none"
+                            marginVertical={sizes.m}
+                            label={t('home.createPost.description')}
+                            placeholder={t(
+                                'home.createPost.descriptionPlaceholder',
+                            )}
+                            value={description}
+                            onChangeText={(value) => setDescription(value)}
+                        />
+                        <Button
+                            onPress={() => handleCreatePost(false)}
+                            shadow={false}>
+                            <Text
+                                p
+                                font={fonts?.[tab === 0 ? 'medium' : 'normal']}>
+                                {t('common.cancel')}
+                            </Text>
+                        </Button>
+                        {/* <Input search placeholder={t('common.search')} /> */}
                     </Block>
                 )}
             </Block>
