@@ -122,6 +122,11 @@
         "aboutMe": "About me",
         "recentPosts": "Recent Posts"
     },
+    "settings": {
+        "userInfo": "User Info",
+        "aboutMePlaceholder": "Say something about yourself!",
+        "userSecurity": "User Security"
+    },
     "pro": {
         "title": "Soft UI PRO",
         "alert": "This feature is available in PRO version",

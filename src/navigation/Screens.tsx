@@ -10,6 +10,7 @@ import {
     Register,
     Login,
     Pro,
+    Settings,
 } from '../screens';
 import {useScreenOptions, useTranslation, useData} from '../hooks';
 
@@ -43,6 +44,11 @@ export default () => {
                         name="Article"
                         component={Article}
                         // options={{title: t('navigation.article')}}
+                    />
+                    <Stack.Screen
+                        name="Settings"
+                        component={Settings}
+                        options={{title: t('navigation.settings')}}
                     />
                     <Stack.Screen
                         name="Pro"
