@@ -75,8 +75,7 @@ const Home = () => {
                 {/* Expanable create post */}
                 {!openCreate ? (
                     <Button
-                        color={colors.background}
-                        shadow={false}
+                        color={colors.info}
                         onPress={() => handleCreatePost(true)}>
                         <Text p font={fonts?.[tab === 0 ? 'medium' : 'normal']}>
                             {t('home.createPost.initialMessage')}
