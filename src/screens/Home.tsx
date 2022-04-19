@@ -87,63 +87,63 @@ const Home = () => {
                         flex={2}
                         scrollEnabled={false}
                         behavior={!isAndroid ? 'padding' : 'height'}
+                        justify="space-evenly"
                         paddingHorizontal={sizes.sm}
                         paddingVertical={sizes.s}
                         color={colors.card}>
-                        <Input
-                            autoCapitalize="none"
-                            marginVertical={sizes.m}
-                            label={t('home.createPost.title')}
-                            placeholder={t('home.createPost.titlePlaceholder')}
-                            value={title}
-                            onChangeText={(value) => setTitle(value)}
-                        />
-                        <Input
-                            autoCapitalize="none"
-                            marginVertical={sizes.m}
-                            label={t('home.createPost.description')}
-                            placeholder={t(
-                                'home.createPost.descriptionPlaceholder',
-                            )}
-                            value={description}
-                            onChangeText={(value) => setDescription(value)}
-                        />
-                        <Button
-                            paddingVertical={sizes.m}
-                            justify="flex-start"
-                            onPress={openImagePickerAsync}
-                            shadow={false}
-                            flex={0}>
-                            <Text
-                                p
-                                font={fonts?.[tab === 0 ? 'medium' : 'normal']}>
-                                {t('home.createPost.uploadPhoto')}
-                            </Text>
-                        </Button>
-                        <Block row justify="center" flex={0}>
+                        <Block flex={1}>
+                            <Input
+                                autoCapitalize="none"
+                                marginVertical={sizes.m}
+                                label={t('home.createPost.title')}
+                                placeholder={t(
+                                    'home.createPost.titlePlaceholder',
+                                )}
+                                value={title}
+                                onChangeText={(value) => setTitle(value)}
+                            />
+                            <Input
+                                autoCapitalize="none"
+                                marginVertical={sizes.m}
+                                label={t('home.createPost.description')}
+                                placeholder={t(
+                                    'home.createPost.descriptionPlaceholder',
+                                )}
+                                value={description}
+                                onChangeText={(value) => setDescription(value)}
+                            />
+                        </Block>
+                        <Block flex={1}>
+                            <Button
+                                onPress={openImagePickerAsync}
+                                flex={1}
+                                gradient={gradients.info}
+                                marginBottom={sizes.base}
+                                paddingHorizontal={sizes.xl}
+                                paddingVertical={sizes.s}>
+                                <Text white bold transform="uppercase">
+                                    {t('home.createPost.uploadPhoto')}
+                                </Text>
+                            </Button>
                             <Button
                                 onPress={() => handleCreatePost(false)}
-                                shadow={false}
-                                paddingHorizontal={sizes.s}
-                                paddingVertical={0}
-                                gradient={gradients?.primary}>
-                                <Text
-                                    p
-                                    font={
-                                        fonts?.[tab === 0 ? 'medium' : 'normal']
-                                    }>
+                                flex={1}
+                                gradient={gradients.primary}
+                                marginBottom={sizes.base}
+                                paddingHorizontal={sizes.xl}
+                                paddingVertical={sizes.s}>
+                                <Text white bold transform="uppercase">
                                     {t('home.createPost.post')}
                                 </Text>
                             </Button>
                             <Button
                                 onPress={() => handleCreatePost(false)}
-                                shadow={false}
-                                paddingHorizontal={sizes.s}>
-                                <Text
-                                    p
-                                    font={
-                                        fonts?.[tab === 0 ? 'medium' : 'normal']
-                                    }>
+                                flex={1}
+                                gradient={gradients.dark}
+                                marginBottom={sizes.base}
+                                paddingHorizontal={sizes.xl}
+                                paddingVertical={sizes.s}>
+                                <Text white bold transform="uppercase">
                                     {t('common.cancel')}
                                 </Text>
                             </Button>
