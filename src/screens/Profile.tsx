@@ -21,21 +21,21 @@ const Profile = () => {
     const IMAGE_VERTICAL_MARGIN =
         (sizes.width - (IMAGE_VERTICAL_SIZE + sizes.sm) * 2) / 2;
 
-    const handleSocialLink = useCallback(
-        (type: 'twitter' | 'dribbble') => {
-            const url =
-                type === 'twitter'
-                    ? `https://twitter.com/${user?.social?.twitter}`
-                    : `https://dribbble.com/${user?.social?.dribbble}`;
+    // const handleSocialLink = useCallback(
+    //     (type: 'twitter' | 'dribbble') => {
+    //         const url =
+    //             type === 'twitter'
+    //                 ? `https://twitter.com/${user?.social?.twitter}`
+    //                 : `https://dribbble.com/${user?.social?.dribbble}`;
 
-            try {
-                Linking.openURL(url);
-            } catch (error) {
-                alert(`Cannot open URL: ${url}`);
-            }
-        },
-        [user],
-    );
+    //         try {
+    //             Linking.openURL(url);
+    //         } catch (error) {
+    //             alert(`Cannot open URL: ${url}`);
+    //         }
+    //     },
+    //     [user],
+    // );
 
     return (
         <Block safe marginTop={sizes.md}>
@@ -79,9 +79,9 @@ const Profile = () => {
                             <Text h5 center white>
                                 {user?.name}
                             </Text>
-                            <Text p center white>
+                            {/* <Text p center white>
                                 {user?.department}
-                            </Text>
+                            </Text> */}
                             <Block row marginVertical={sizes.m}>
                                 <Button
                                     white
@@ -101,7 +101,8 @@ const Profile = () => {
                                         </Text>
                                     </Block>
                                 </Button>
-                                <Button
+                                {/* Social media buttons */}
+                                {/* <Button
                                     shadow={false}
                                     radius={sizes.m}
                                     marginHorizontal={sizes.sm}
@@ -127,7 +128,7 @@ const Profile = () => {
                                         name="logo-dribbble"
                                         color={colors.white}
                                     />
-                                </Button>
+                                </Button> */}
                             </Block>
                         </Block>
                     </Image>
@@ -188,12 +189,12 @@ const Profile = () => {
                     <Block paddingHorizontal={sizes.sm} marginTop={sizes.s}>
                         <Block row align="center" justify="space-between">
                             <Text h5 semibold>
-                                {t('common.album')}
+                                {t('profile.recentPosts')}
                             </Text>
                             <Button>
-                                <Text p primary semibold>
+                                {/* <Text p primary semibold>
                                     {t('common.viewall')}
-                                </Text>
+                                </Text> */}
                             </Button>
                         </Block>
                         <Block row justify="space-between" wrap="wrap">

@@ -119,7 +119,8 @@
         "posts": "Posts",
         "followers": "Followers",
         "following": "Following",
-        "aboutMe": "About me"
+        "aboutMe": "About me",
+        "recentPosts": "Recent Posts"
     },
     "pro": {
         "title": "Soft UI PRO",
