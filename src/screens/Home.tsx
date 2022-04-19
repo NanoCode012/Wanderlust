@@ -1,31 +1,158 @@
 import React, {useCallback, useState} from 'react';
+import {Linking, Platform} from 'react-native';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
-import {Block, Button, Image, Input, Product, Text} from '../components/';
+import {useNavigation} from '@react-navigation/core';
+import {Block, Button, Image, Input, Text, ArticleCard} from '../components/';
+import {IArticle} from '../constants/types';
+import * as ImagePicker from 'expo-image-picker';
+
+const isAndroid = Platform.OS === 'android';
 
 const Home = () => {
     const {t} = useTranslation();
+    const navigation = useNavigation();
     const [tab, setTab] = useState<number>(0);
-    const {following, trending} = useData();
-    const [products, setProducts] = useState(following);
+    const {following, popular, handleArticle} = useData();
+    const [articles, setArticles] = useState(following);
+
+    const [openCreate, setOpenCreate] = useState(false);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [selectedImageURI, setSelectedImageURI] = useState('');
+
     const {assets, colors, fonts, gradients, sizes} = useTheme();
 
-    const handleProducts = useCallback(
+    let openImagePickerAsync = async () => {
+        let permissionResult =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (permissionResult.granted === false) {
+            alert('Permission to access camera roll is required!');
+            return;
+        }
+
+        let pickerResult = await ImagePicker.launchImageLibraryAsync();
+        if (pickerResult.cancelled === true) {
+            return;
+        }
+
+        setSelectedImageURI(pickerResult.uri);
+    };
+
+    const handleArticles = useCallback(
         (tab: number) => {
             setTab(tab);
-            setProducts(tab === 0 ? following : trending);
+            setArticles(tab === 0 ? following : popular);
         },
-        [following, trending, setTab, setProducts],
+        [following, popular, setTab, setArticles],
     );
+
+    const handleArticlePress = useCallback(
+        (article: IArticle) => {
+            handleArticle(article);
+            navigation.navigate('Article');
+        },
+        [handleArticle],
+    );
+
+    const handleCreatePost = useCallback((opt: boolean) => {
+        setOpenCreate(opt);
+        setTitle('');
+        setDescription('');
+    }, []);
 
     return (
         <Block>
             {/* search input */}
-            <Block color={colors.card} flex={0} padding={sizes.padding}>
-                <Input search placeholder={t('common.search')} />
+            <Block
+                color={colors.card}
+                flex={openCreate ? 2 : 0}
+                padding={sizes.padding}>
+                {/* Search bar */}
+                {/* <Input search placeholder={t('common.search')} /> */}
+
+                {/* Expanable create post */}
+                {!openCreate ? (
+                    <Button
+                        color={colors.background}
+                        shadow={false}
+                        onPress={() => handleCreatePost(true)}>
+                        <Text p font={fonts?.[tab === 0 ? 'medium' : 'normal']}>
+                            {t('home.createPost.initialMessage')}
+                        </Text>
+                    </Button>
+                ) : (
+                    <Block
+                        flex={2}
+                        scrollEnabled={false}
+                        behavior={!isAndroid ? 'padding' : 'height'}
+                        paddingHorizontal={sizes.sm}
+                        paddingVertical={sizes.s}
+                        color={colors.card}>
+                        <Input
+                            autoCapitalize="none"
+                            marginVertical={sizes.m}
+                            label={t('home.createPost.title')}
+                            placeholder={t('home.createPost.titlePlaceholder')}
+                            value={title}
+                            onChangeText={(value) => setTitle(value)}
+                        />
+                        <Input
+                            autoCapitalize="none"
+                            marginVertical={sizes.m}
+                            label={t('home.createPost.description')}
+                            placeholder={t(
+                                'home.createPost.descriptionPlaceholder',
+                            )}
+                            value={description}
+                            onChangeText={(value) => setDescription(value)}
+                        />
+                        <Button
+                            paddingVertical={sizes.m}
+                            justify="flex-start"
+                            onPress={openImagePickerAsync}
+                            shadow={false}
+                            flex={0}>
+                            <Text
+                                p
+                                font={fonts?.[tab === 0 ? 'medium' : 'normal']}>
+                                {t('home.createPost.uploadPhoto')}
+                            </Text>
+                        </Button>
+                        <Block row justify="center" flex={0}>
+                            <Button
+                                onPress={() => handleCreatePost(false)}
+                                shadow={false}
+                                paddingHorizontal={sizes.s}
+                                paddingVertical={0}
+                                gradient={gradients?.primary}>
+                                <Text
+                                    p
+                                    font={
+                                        fonts?.[tab === 0 ? 'medium' : 'normal']
+                                    }>
+                                    {t('home.createPost.post')}
+                                </Text>
+                            </Button>
+                            <Button
+                                onPress={() => handleCreatePost(false)}
+                                shadow={false}
+                                paddingHorizontal={sizes.s}>
+                                <Text
+                                    p
+                                    font={
+                                        fonts?.[tab === 0 ? 'medium' : 'normal']
+                                    }>
+                                    {t('common.cancel')}
+                                </Text>
+                            </Button>
+                        </Block>
+                    </Block>
+                )}
             </Block>
 
-            {/* toggle products list */}
+            {/* toggle articles list */}
             <Block
                 row
                 flex={0}
@@ -33,7 +160,7 @@ const Home = () => {
                 justify="center"
                 color={colors.card}
                 paddingBottom={sizes.sm}>
-                <Button onPress={() => handleProducts(0)}>
+                <Button onPress={() => handleArticles(0)}>
                     <Block row align="center">
                         <Block
                             flex={0}
@@ -64,7 +191,7 @@ const Home = () => {
                     marginHorizontal={sizes.sm}
                     height={sizes.socialIconSize}
                 />
-                <Button onPress={() => handleProducts(1)}>
+                <Button onPress={() => handleArticles(1)}>
                     <Block row align="center">
                         <Block
                             flex={0}
@@ -84,13 +211,13 @@ const Home = () => {
                             />
                         </Block>
                         <Text p font={fonts?.[tab === 1 ? 'medium' : 'normal']}>
-                            {t('home.trending')}
+                            {t('home.popular')}
                         </Text>
                     </Block>
                 </Button>
             </Block>
 
-            {/* products list */}
+            {/* articles list */}
             <Block
                 scroll
                 paddingHorizontal={sizes.padding}
@@ -101,8 +228,12 @@ const Home = () => {
                     wrap="wrap"
                     justify="space-between"
                     marginTop={sizes.sm}>
-                    {products?.map((product) => (
-                        <Product {...product} key={`card-${product?.id}`} />
+                    {articles?.map((article) => (
+                        <ArticleCard
+                            article={article}
+                            handlePress={() => handleArticlePress(article)}
+                            key={`card-${article?.id}`}
+                        />
                     ))}
                 </Block>
             </Block>

@@ -33,6 +33,7 @@ export interface IArticleOptions {
 export interface IArticle {
     id?: number;
     title?: string;
+    type?: string;
     description?: string;
     category?: ICategory;
     image?: string;
@@ -43,6 +44,11 @@ export interface IArticle {
     options?: IArticleOptions[];
     timestamp?: number;
     onPress?: (event?: any) => void;
+}
+
+export interface IArticleCardProp {
+    article: IArticle;
+    handlePress: () => void;
 }
 
 export interface IProduct {
@@ -70,10 +76,10 @@ export interface IUseData {
     handleUsers: (data?: IUser[]) => void;
     basket: IBasket;
     handleBasket: (data?: IBasket) => void;
-    following: IProduct[];
-    setFollowing: (data?: IProduct[]) => void;
-    trending: IProduct[];
-    setTrending: (data?: IProduct[]) => void;
+    following: IArticle[];
+    setFollowing: (data?: IArticle[]) => void;
+    popular: IArticle[];
+    setPopular: (data?: IArticle[]) => void;
     categories: ICategory[];
     setCategories: (data?: ICategory[]) => void;
     recommendations: IArticle[];

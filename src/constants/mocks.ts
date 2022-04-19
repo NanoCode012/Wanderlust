@@ -70,18 +70,25 @@ export const USERS: IUser[] = [
 ];
 
 // following cards
-export const FOLLOWING: IProduct[] = [
+export const FOLLOWING: IArticle[] = [
     {
         id: 1,
         type: 'vertical',
         title: 'Unique activities with local experts.',
         image: 'https://images.unsplash.com/photo-1604998103924-89e012e5265a?fit=crop&w=450&q=80',
+        description: `The mission of LinkedIn is simple: connect the world's professionals.`,
+        user: USERS[4],
+        timestamp: dayjs().unix(),
     },
     {
         id: 2,
         type: 'vertical',
         title: 'The highest status people.',
         image: 'https://images.unsplash.com/photo-1563492065599-3520f775eeed?fit=crop&w=450&q=80',
+        description:
+            'Rather than worrying about switching offices every couple years, you can instead stay.',
+        user: USERS[0],
+        timestamp: dayjs().unix(),
     },
     {
         id: 3,
@@ -109,8 +116,8 @@ export const FOLLOWING: IProduct[] = [
     },
 ];
 
-// trending cards
-export const TRENDING: IProduct[] = [
+// popular cards
+export const POPULAR: IArticle[] = [
     {
         id: 1,
         type: 'horizontal',
@@ -653,7 +660,7 @@ export const NOTIFICATIONS: INotification[] = [
 export default {
     USERS,
     FOLLOWING,
-    TRENDING,
+    POPULAR,
     CATEGORIES,
     ARTICLES,
     RECOMMENDATIONS,
