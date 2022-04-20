@@ -3,6 +3,9 @@ import React from 'react';
 
 import {DataProvider} from './src/hooks';
 import AppNavigation from './src/navigation/App';
+import {registerRootComponent} from 'expo';
+
+import './firebaseConfig';
 
 export default function App() {
     return (
@@ -11,3 +14,5 @@ export default function App() {
         </DataProvider>
     );
 }
+
+registerRootComponent(App);
