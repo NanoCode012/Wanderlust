@@ -77,7 +77,7 @@ const Home = () => {
                     <Button
                         color={colors.info}
                         onPress={() => handleCreatePost(true)}>
-                        <Text p font={'medium'}>
+                        <Text p font={fonts.medium}>
                             {t('home.createPost.initialMessage')}
                         </Text>
                     </Button>
