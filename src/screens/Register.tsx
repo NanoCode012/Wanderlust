@@ -1,5 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Linking, Platform} from 'react-native';
+import {getAuth, createUserWithEmailAndPassword} from 'firebase/auth';
+import {set, ref, getDatabase, serverTimestamp} from 'firebase/database';
 import {useNavigation} from '@react-navigation/core';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
@@ -46,11 +48,42 @@ const Register = () => {
         [setRegistration],
     );
 
+    const createUserDB = (userId: string, name: string) => {
+        const db = getDatabase();
+        set(ref(db, 'users/' + userId), {
+            name: name,
+            createdAt: serverTimestamp(),
+        })
+            .then(() => {
+                // Data saved successfully!
+            })
+            .catch((error) => {
+                // The write failed...
+                console.log(error);
+            });
+    };
+
     const handleSignUp = useCallback(() => {
         if (!Object.values(isValid).includes(false)) {
             /** send/save registratin data */
-            console.log('handleSignUp', registration);
-            navigation.navigate('Login');
+            // console.log('handleSignUp', registration);
+            const auth = getAuth();
+            createUserWithEmailAndPassword(
+                auth,
+                registration.email,
+                registration.password,
+            )
+                .then((userCredential) => {
+                    // Signed in -> Auto-login
+                    const user = userCredential.user;
+
+                    createUserDB(user.uid, registration.name);
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.warn(errorCode + errorMessage);
+                });
         }
     }, [isValid, registration]);
 
