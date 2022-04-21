@@ -1,4 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
+import {getAuth, onAuthStateChanged} from 'firebase/auth';
 import Storage from '@react-native-async-storage/async-storage';
 
 import {IArticle, ICategory, IUser, IUseData, ITheme} from '../constants/types';
@@ -34,6 +35,8 @@ export const DataProvider = ({children}: {children: React.ReactNode}) => {
         if (isDarkJSON !== null) {
             // set isDark / compare if has updated
             setIsDark(JSON.parse(isDarkJSON));
+        } else {
+            handleIsDark(false);
         }
     }, [setIsDark]);
 
@@ -81,17 +84,6 @@ export const DataProvider = ({children}: {children: React.ReactNode}) => {
         [article, setArticle],
     );
 
-    // get isLoggedIn mode from storage
-    const getIsLoggedIn = useCallback(async () => {
-        // get preferance gtom storage
-        const isLoggedInJSON = await Storage.getItem('isLoggedIn');
-
-        if (isLoggedInJSON !== null) {
-            // set isDark / compare if has updated
-            setIsLoggedIn(JSON.parse(isLoggedInJSON));
-        }
-    }, [setIsLoggedIn]);
-
     // handle isLoggedIn mode
     const handleIsLoggedIn = useCallback(
         (payload: boolean) => {
@@ -103,15 +95,28 @@ export const DataProvider = ({children}: {children: React.ReactNode}) => {
         [setIsLoggedIn],
     );
 
+    // set auth
+    useEffect(() => {
+        const auth = getAuth();
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in, see docs for a list of available properties
+                // https://firebase.google.com/docs/reference/js/firebase.User
+                const uid = user.uid;
+                // ...
+                handleIsLoggedIn(true);
+            } else {
+                // User is signed out
+                // ...
+                handleIsLoggedIn(false);
+            }
+        });
+    }, []);
+
     // get initial data for: isDark & language
     useEffect(() => {
         getIsDark();
     }, [getIsDark]);
-
-    // get initial data for: isLoggedIn
-    useEffect(() => {
-        getIsLoggedIn();
-    }, [getIsLoggedIn]);
 
     // change theme based on isDark updates
     useEffect(() => {
@@ -138,7 +143,6 @@ export const DataProvider = ({children}: {children: React.ReactNode}) => {
         article,
         handleArticle,
         isLoggedIn,
-        handleIsLoggedIn,
     };
 
     return (

@@ -12,6 +12,7 @@ import {
 import Screens from './Screens';
 import {Block, Text, Switch, Button, Image} from '../components';
 import {useData, useTheme, useTranslation} from '../hooks';
+import {getAuth} from 'firebase/auth';
 
 const Drawer = createDrawerNavigator();
 
@@ -67,7 +68,7 @@ const DrawerContent = (
 ) => {
     const {navigation} = props;
     const {t} = useTranslation();
-    const {isDark, handleIsDark, handleIsLoggedIn} = useData();
+    const {isDark, handleIsDark} = useData();
     const [active, setActive] = useState('Home');
     const {assets, colors, gradients, sizes} = useTheme();
     const labelColor = colors.text;
@@ -178,7 +179,8 @@ const DrawerContent = (
                     marginTop={sizes.sm}
                     marginBottom={sizes.s}
                     onPress={() => {
-                        handleIsLoggedIn(false);
+                        const auth = getAuth();
+                        auth.signOut();
                         navigation.closeDrawer();
                     }}>
                     <Block
