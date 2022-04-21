@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Linking, Platform} from 'react-native';
 import {useNavigation} from '@react-navigation/core';
+import {getAuth, signInWithEmailAndPassword} from 'firebase/auth';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
 import * as regex from '../constants/regex';
@@ -18,7 +19,7 @@ interface ILoginValidation {
 }
 
 const Login = () => {
-    const {isDark, handleIsLoggedIn} = useData();
+    const {isDark} = useData();
     const {t} = useTranslation();
     const navigation = useNavigation();
     const [isValid, setIsValid] = useState<ILoginValidation>({
@@ -41,9 +42,19 @@ const Login = () => {
     const handleLogin = useCallback(() => {
         if (!Object.values(isValid).includes(false)) {
             /** send/save login data */
-            console.log('handleLogin', login);
+            // console.log('handleLogin', login);
             // Check credentials and set loggedIn
-            handleIsLoggedIn(true);
+            const auth = getAuth();
+            signInWithEmailAndPassword(auth, login.email, login.password)
+                .then((userCredential) => {
+                    // Signed in
+                    // const user = userCredential.user;
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.warn(errorCode + errorMessage);
+                });
         }
     }, [isValid, login]);
 
