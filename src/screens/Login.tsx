@@ -198,6 +198,7 @@ const Login = () => {
                                     onChangeText={(value) =>
                                         handleChange({email: value})
                                     }
+                                    value={login.email}
                                 />
                                 <Input
                                     secureTextEntry
@@ -216,6 +217,7 @@ const Login = () => {
                                     danger={Boolean(
                                         login.password && !isValid.password,
                                     )}
+                                    value={login.password}
                                 />
                             </Block>
                             <Button

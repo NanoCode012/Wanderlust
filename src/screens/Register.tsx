@@ -228,6 +228,7 @@ const Register = () => {
                                     onChangeText={(value) =>
                                         handleChange({name: value})
                                     }
+                                    value={registration.name}
                                 />
                                 <Input
                                     autoCapitalize="none"
@@ -244,6 +245,7 @@ const Register = () => {
                                     onChangeText={(value) =>
                                         handleChange({email: value})
                                     }
+                                    value={registration.email}
                                 />
                                 <Input
                                     secureTextEntry
@@ -264,6 +266,7 @@ const Register = () => {
                                         registration.password &&
                                             !isValid.password,
                                     )}
+                                    value={registration.password}
                                 />
                             </Block>
                             {/* checkbox terms */}
