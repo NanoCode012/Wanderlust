@@ -91,7 +91,6 @@ export interface IUseData {
     notifications: INotification[];
     handleNotifications: (data?: INotification[]) => void;
     isLoggedIn: boolean;
-    handleIsLoggedIn: (isLoggedIn?: boolean) => void;
 }
 
 export interface ITranslate {
