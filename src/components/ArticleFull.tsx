@@ -79,13 +79,11 @@ const ArticleFull = ({
             [`followers/${creator.id}/${currentUser.uid}`]: followVal,
         };
 
-        if (creatorPosts) {
-            // Copy creator's postid to /userFollowingPosts/
-            creatorPosts.forEach((postId) => {
-                updates[`/userFollowingPosts/${currentUser.uid}/${postId}`] =
-                    followVal;
-            });
-        }
+        // Copy creator's postid to /userFollowingPosts/
+        creatorPosts?.forEach((postId) => {
+            updates[`/userFollowingPosts/${currentUser.uid}/${postId}`] =
+                followVal;
+        });
 
         update(ref(db), updates).catch((e) => {
             console.log(e);
