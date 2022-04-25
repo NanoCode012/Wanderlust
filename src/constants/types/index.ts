@@ -39,7 +39,7 @@ export interface IArticle {
     image?: string;
     location?: ILocation;
     rating?: number;
-    user?: IUser;
+    creator?: IUser;
     offers?: IProduct[];
     options?: IArticleOptions[];
     timestamp?: number;
