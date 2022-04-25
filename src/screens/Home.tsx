@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Linking, Platform} from 'react-native';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
@@ -6,8 +6,121 @@ import {useNavigation} from '@react-navigation/core';
 import {Block, Button, Image, Input, Text, ArticleCard} from '../components/';
 import {IArticle} from '../constants/types';
 import * as ImagePicker from 'expo-image-picker';
+import {
+    getDatabase,
+    ref as dbRef,
+    push,
+    serverTimestamp,
+    update,
+    Database,
+} from 'firebase/database';
+import {
+    getStorage,
+    ref as storageRef,
+    StorageError,
+    uploadBytesResumable,
+    getDownloadURL,
+} from 'firebase/storage';
+import {getAuth} from 'firebase/auth';
 
 const isAndroid = Platform.OS === 'android';
+
+const getBlobFromUri = async (uri: string) => {
+    // Default method
+    // const blob = await new Promise<Blob>((resolve, reject) => {
+    //     const xhr = new XMLHttpRequest();
+    //     xhr.onload = function () {
+    //         resolve(xhr.response);
+    //     };
+    //     xhr.onerror = function (e) {
+    //         reject(new TypeError('Network request failed'));
+    //     };
+    //     xhr.responseType = 'blob';
+    //     xhr.open('GET', uri, true);
+    //     xhr.send(null);
+    // });
+
+    // https://stackoverflow.com/a/70898768
+    try {
+        const img = await fetch(uri);
+        const blob = await img.blob();
+        return blob;
+    } catch (e) {
+        console.error(e);
+        throw Error('An error occurred in getBlobFromUri');
+    }
+};
+
+const manageFileUpload = async (
+    postID: string,
+    fileBlob: Blob,
+    onStart?: () => void,
+    onProgress?: (progress: number) => void,
+    onComplete?: (downloadURL: string, postID: string) => void,
+    onFail?: (error: StorageError) => void,
+) => {
+    const imgName = 'background';
+    const storage = getStorage();
+    const pathToStore = `posts/${postID}/${imgName}.jpeg`;
+
+    const storRef = storageRef(storage, pathToStore);
+
+    // Create file metadata including the content type
+    const metadata = {
+        contentType: 'image/jpeg',
+    };
+
+    // Trigger file upload start event
+    onStart && onStart();
+    const uploadTask = uploadBytesResumable(storRef, fileBlob, metadata);
+    // Listen for state changes, errors, and completion of the upload.
+    uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            const progress =
+                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+
+            // Monitor uploading progress
+            onProgress && onProgress(Math.round(progress));
+            switch (snapshot.state) {
+                case 'paused':
+                    // console.log('Upload is paused');
+                    break;
+                case 'running':
+                    // console.log('Upload is running');
+                    break;
+                default:
+                    // console.log(snapshot.state);
+                    break;
+            }
+        },
+        (error) => {
+            // Something went wrong - dispatch onFail event with error  response
+            onFail && onFail(error);
+        },
+        () => {
+            // Upload completed successfully, now we can get the download URL
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                // dispatch on complete event
+                onComplete && onComplete(downloadURL, postID);
+            });
+        },
+    );
+};
+
+interface IPostData {
+    title: string;
+    description: string;
+    createdAt: object;
+    creator: {
+        id: string;
+        name?: string;
+    };
+    upvotes?: [];
+    localPath?: string | null;
+    remoteURL?: string | null;
+}
 
 const Home = () => {
     const {t} = useTranslation();
@@ -19,7 +132,13 @@ const Home = () => {
     const [openCreate, setOpenCreate] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+
+    const [isUploading, setIsUploading] = useState(false);
     const [selectedImageURI, setSelectedImageURI] = useState('');
+    const [progress, setProgress] = useState(0);
+    const [posted, setPosted] = useState(false);
+
+    const [storageError, setStorageError] = useState<StorageError>();
 
     const {assets, colors, fonts, gradients, sizes} = useTheme();
 
@@ -40,6 +159,69 @@ const Home = () => {
         setSelectedImageURI(pickerResult.uri);
     };
 
+    const onStart = () => {
+        setIsUploading(true);
+    };
+
+    const onProgress = (progress: number) => {
+        setProgress(progress);
+    };
+
+    const onComplete = (fileUrl: string, postID: string) => {
+        setIsUploading(false);
+
+        const user = getAuth().currentUser;
+
+        if (!user) throw new Error('No user found!');
+
+        const database = getDatabase();
+
+        const updates = {
+            ['/posts/' + postID + '/remoteURL']: fileUrl,
+        };
+
+        update(dbRef(database), updates)
+            .then(() => {})
+            .catch((e) => {
+                console.log(e);
+            });
+    };
+
+    const onFail = (error: StorageError) => {
+        setStorageError(error);
+        switch (error.code) {
+            case 'storage/unauthorized':
+                console.log(
+                    "User doesn't have permission to access the object",
+                );
+                break;
+            case 'storage/canceled':
+                console.log('User canceled the upload');
+                break;
+            case 'storage/unknown':
+                console.log(
+                    'Unknown error occurred, inspect error.serverResponse',
+                );
+                break;
+        }
+        resetField();
+    };
+
+    const handleCloudImageUpload = async (postID: string) => {
+        if (!selectedImageURI) return;
+
+        const blob = await getBlobFromUri(selectedImageURI);
+
+        await manageFileUpload(
+            postID,
+            blob,
+            onStart,
+            onProgress,
+            onComplete,
+            onFail,
+        );
+    };
+
     const handleArticles = useCallback(
         (tab: number) => {
             setTab(tab);
@@ -56,11 +238,65 @@ const Home = () => {
         [handleArticle],
     );
 
-    const handleCreatePost = useCallback((opt: boolean) => {
-        setOpenCreate(opt);
+    const resetField = () => {
         setTitle('');
         setDescription('');
-    }, []);
+        setSelectedImageURI('');
+    };
+
+    useEffect(() => {
+        resetField();
+        setPosted(false);
+    }, [openCreate]);
+
+    useEffect(() => {
+        resetField();
+    }, [posted]);
+
+    const uploadPost = () => {
+        const user = getAuth().currentUser;
+
+        if (!user) throw new Error('No user found!');
+
+        const database = getDatabase();
+
+        const newPostKey = push(dbRef(database, 'posts/')).key;
+
+        if (!newPostKey) throw Error('No post key');
+
+        handleCloudImageUpload(newPostKey);
+
+        const postData: IPostData = {
+            title: title,
+            description: description,
+            createdAt: serverTimestamp(),
+            creator: {
+                id: user.uid,
+                // name: user.displayName,
+            },
+            upvotes: [],
+            localPath: selectedImageURI
+                ? 'posts/' + newPostKey + '/background.jpeg'
+                : null,
+        };
+        const updates = {
+            ['/posts/' + newPostKey]: postData,
+        };
+
+        update(dbRef(database), updates)
+            .then(() => {
+                setPosted(true);
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    };
+
+    const handlePost = () => {
+        if (!title) return;
+
+        uploadPost();
+    };
 
     return (
         <Block>
@@ -76,7 +312,7 @@ const Home = () => {
                 {!openCreate ? (
                     <Button
                         color={colors.info}
-                        onPress={() => handleCreatePost(true)}>
+                        onPress={() => setOpenCreate(true)}>
                         <Text p font={fonts.medium}>
                             {t('home.createPost.initialMessage')}
                         </Text>
@@ -100,6 +336,7 @@ const Home = () => {
                                 )}
                                 value={title}
                                 onChangeText={(value) => setTitle(value)}
+                                disabled={isUploading || posted}
                             />
                             <Input
                                 autoCapitalize="none"
@@ -110,40 +347,55 @@ const Home = () => {
                                 )}
                                 value={description}
                                 onChangeText={(value) => setDescription(value)}
+                                disabled={isUploading || posted}
                             />
                         </Block>
                         <Block flex={1}>
                             <Button
                                 onPress={openImagePickerAsync}
                                 flex={1}
-                                gradient={gradients.info}
+                                gradient={
+                                    selectedImageURI
+                                        ? gradients.success
+                                        : gradients.info
+                                }
                                 marginBottom={sizes.base}
                                 paddingHorizontal={sizes.xl}
-                                paddingVertical={sizes.s}>
+                                paddingVertical={sizes.s}
+                                disabled={isUploading || posted}>
                                 <Text white bold transform="uppercase">
                                     {t('home.createPost.uploadPhoto')}
                                 </Text>
                             </Button>
                             <Button
-                                onPress={() => handleCreatePost(false)}
+                                onPress={() => {
+                                    handlePost();
+                                }}
                                 flex={1}
-                                gradient={gradients.primary}
+                                gradient={
+                                    posted
+                                        ? gradients.success
+                                        : gradients.primary
+                                }
                                 marginBottom={sizes.base}
                                 paddingHorizontal={sizes.xl}
-                                paddingVertical={sizes.s}>
+                                paddingVertical={sizes.s}
+                                disabled={isUploading || posted}>
                                 <Text white bold transform="uppercase">
                                     {t('home.createPost.post')}
                                 </Text>
                             </Button>
                             <Button
-                                onPress={() => handleCreatePost(false)}
+                                onPress={() => setOpenCreate(false)}
                                 flex={1}
                                 gradient={gradients.dark}
                                 marginBottom={sizes.base}
                                 paddingHorizontal={sizes.xl}
                                 paddingVertical={sizes.s}>
                                 <Text white bold transform="uppercase">
-                                    {t('common.cancel')}
+                                    {posted
+                                        ? t('common.close')
+                                        : t('common.cancel')}
                                 </Text>
                             </Button>
                         </Block>
