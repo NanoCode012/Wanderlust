@@ -31,6 +31,7 @@ const ArticleFull = ({
 
     const [upvoted, setUpvoted] = useState(false);
     const [follow, setFollow] = useState(false);
+    const [showFollow, setShowFollow] = useState(true);
 
     const [numUpvotes, setNumUpvotes] = useState(0);
 
@@ -55,13 +56,35 @@ const ArticleFull = ({
         update(ref(db), updates).catch((e) => {
             console.log(e);
         });
-
-        // setUpvoted(isUpvote);
     };
 
     const handleFollow = () => {
-        //send to db
-        setFollow(!follow);
+        const db = getDatabase();
+        const currentUser = getAuth().currentUser;
+
+        if (!currentUser) return;
+        if (!user) return;
+        if (user.id == currentUser.uid) {
+            console.log('You cannot follow yourself');
+            return;
+        }
+
+        // if upvoted=false, means user press Upvote to change to true
+        const applyFollow = !follow;
+
+        if (applyFollow) {
+            // Copy posts from user.id at /userPosts/user.id/ to /userFollowingPosts/currentUser.uid/
+        }
+
+        const updates = {
+            [`users/${currentUser.uid}/following/${user.id}`]: applyFollow
+                ? true
+                : null,
+        };
+
+        update(ref(db), updates).catch((e) => {
+            console.log(e);
+        });
     };
 
     if (!user || !user.avatar) {
@@ -112,6 +135,33 @@ const ArticleFull = ({
         return () => {
             numUpvotesListener();
             upvotesListener();
+        };
+    }, []);
+
+    // Get follows
+    useEffect(() => {
+        const db = getDatabase();
+        const currentUser = getAuth().currentUser;
+
+        if (!currentUser) return;
+        if (!user) return; //stop if no creator
+        if (currentUser.uid == user.id) {
+            setShowFollow(false);
+            return;
+        }
+
+        const followingRef = ref(
+            db,
+            `users/${currentUser.uid}/following/${user.id}`,
+        );
+        const followingListener = onValue(followingRef, (snapshot) => {
+            const data = snapshot.val();
+
+            setFollow(Boolean(data));
+        });
+
+        return () => {
+            followingListener();
         };
     }, []);
 
@@ -183,21 +233,25 @@ const ArticleFull = ({
                                             ) || '-',
                                     })}
                             </Text>
-                            <Button
-                                row
-                                justify="flex-end"
-                                onPress={() => handleFollow()}>
-                                <Image
-                                    radius={0}
-                                    color={
-                                        follow ? colors.success : colors.black
-                                    }
-                                    source={assets.bell}
-                                />
-                                <Text p black marginLeft={sizes.s}>
-                                    {t('common.follow')}
-                                </Text>
-                            </Button>
+                            {showFollow && (
+                                <Button
+                                    row
+                                    justify="flex-end"
+                                    onPress={() => handleFollow()}>
+                                    <Image
+                                        radius={0}
+                                        color={
+                                            follow
+                                                ? colors.success
+                                                : colors.black
+                                        }
+                                        source={assets.bell}
+                                    />
+                                    <Text p black marginLeft={sizes.s}>
+                                        {t('common.follow')}
+                                    </Text>
+                                </Button>
+                            )}
                             <Button
                                 row
                                 justify="flex-end"
