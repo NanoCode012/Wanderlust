@@ -171,6 +171,8 @@ const Button = ({
     /* handle onPress event */
     const handlePress = useCallback(
         (event) => {
+            if (disabled) return;
+
             onPress?.(event);
 
             /* vibrate onPress */
@@ -183,7 +185,7 @@ const Button = ({
                 Haptics.selectionAsync();
             }
         },
-        [haptic, vibrate, vibrateRepeat, onPress],
+        [haptic, vibrate, vibrateRepeat, onPress, disabled],
     );
 
     if (round) {
