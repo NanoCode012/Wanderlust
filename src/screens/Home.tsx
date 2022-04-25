@@ -520,7 +520,9 @@ const Home = () => {
                                 marginBottom={sizes.base}
                                 paddingHorizontal={sizes.xl}
                                 paddingVertical={sizes.s}
-                                disabled={isUploading || posted}>
+                                disabled={
+                                    title.length == 0 || isUploading || posted
+                                }>
                                 <Text white bold transform="uppercase">
                                     {t('home.createPost.post')}
                                 </Text>
