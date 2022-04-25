@@ -31,7 +31,7 @@ export interface IArticleOptions {
     image?: string;
 }
 export interface IArticle {
-    id?: number;
+    id?: string;
     title?: string;
     type?: string;
     description?: string;
