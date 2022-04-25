@@ -32,11 +32,13 @@ const ArticleFull = ({
         //send to db
         setUpvoted(!upvoted);
     };
-    if (!user) {
+    if (!user || !user.avatar) {
         user = {
-            id: -1,
-            name: t('common.anonymous'),
-            avatar: 'https://images.unsplash.com/photo-1569516449771-41c89ee14ca3?fit=crop&w=80&q=80',
+            id: user?.id || -1,
+            name: user?.name || t('common.anonymous'),
+            avatar:
+                user?.avatar ||
+                'https://images.unsplash.com/photo-1569516449771-41c89ee14ca3?fit=crop&w=80&q=80',
         };
     }
 
