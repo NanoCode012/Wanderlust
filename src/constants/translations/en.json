@@ -52,10 +52,10 @@
         "cancel": "Cancel"
     },
     "app": {
-        "name": "Soft UI",
-        "fullname": "Soft UI Kit",
+        "name": "Wanderlust",
+        "fullname": "Wanderlust",
         "native": "React Native",
-        "link": "creative-tim.com"
+        "link": "https://github.com/NanoCode012/Wanderlust"
     },
     "darkMode": "Dark Mode",
     "screens": {
