@@ -27,11 +27,18 @@ const ArticleFull = ({
     const {colors, gradients, icons, sizes, assets} = useTheme();
 
     const [upvoted, setUpvoted] = useState(false);
+    const [follow, setFollow] = useState(false);
 
     const handleUpvote = () => {
         //send to db
         setUpvoted(!upvoted);
     };
+
+    const handleFollow = () => {
+        //send to db
+        setFollow(!follow);
+    };
+
     if (!user || !user.avatar) {
         user = {
             id: user?.id || -1,
@@ -110,6 +117,21 @@ const ArticleFull = ({
                                             ) || '-',
                                     })}
                             </Text>
+                            <Button
+                                row
+                                justify="flex-end"
+                                onPress={() => handleFollow()}>
+                                <Image
+                                    radius={0}
+                                    color={
+                                        follow ? colors.success : colors.black
+                                    }
+                                    source={assets.bell}
+                                />
+                                <Text p black marginLeft={sizes.s}>
+                                    {t('common.follow')}
+                                </Text>
+                            </Button>
                             <Button
                                 row
                                 justify="flex-end"
