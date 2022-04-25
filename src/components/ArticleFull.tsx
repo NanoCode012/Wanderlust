@@ -29,6 +29,10 @@ const ArticleFull = ({
     const [upvoted, setUpvoted] = useState(false);
     const [follow, setFollow] = useState(false);
 
+    const [uri, setURI] = useState(
+        'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1yZWxhdGVkfDF8fHxlbnwwfHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+    );
+
     const handleUpvote = () => {
         //send to db
         setUpvoted(!upvoted);
@@ -49,6 +53,18 @@ const ArticleFull = ({
         };
     }
 
+    useEffect(() => {
+        if (!process.env.IMAGEKIT_ENDPOINT) return;
+        if (image) {
+            setURI(
+                image.replace(
+                    process.env.IMAGEKIT_ENDPOINT,
+                    process.env.IMAGEKIT_ENDPOINT + 'tr:h-' + 170,
+                ),
+            );
+        }
+    }, []);
+
     // render card for Newest & Fashion
     if (category?.id !== 1) {
         return (
@@ -57,7 +73,7 @@ const ArticleFull = ({
                     <Image
                         height={170}
                         resizeMode="cover"
-                        source={{uri: image}}
+                        source={{uri: uri}}
                     />
                     {/* article category */}
                     {category?.name && (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {TouchableOpacity} from 'react-native';
 
 import Block from './Block';
@@ -11,9 +11,29 @@ const ArticleCard = ({article, handlePress}: IArticleCardProp) => {
     const {image, title, type} = {...article};
     const {t} = useTranslation();
     const {assets, colors, sizes} = useTheme();
+    const [width, setWidth] = useState(0);
+
+    const [uri, setURI] = useState(
+        'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1yZWxhdGVkfDF8fHxlbnwwfHx8fA%3D%3D&auto=format&fit=crop&w=500&q=60',
+    );
 
     const isHorizontal = type !== 'vertical';
-    const CARD_WIDTH = (sizes.width - sizes.padding * 2 - sizes.sm) / 2;
+
+    useEffect(() => {
+        const CARD_WIDTH = (sizes.width - sizes.padding * 2 - sizes.sm) / 2;
+        const tempWidth = isHorizontal ? CARD_WIDTH * 2 + sizes.sm : CARD_WIDTH;
+        setWidth(tempWidth);
+
+        if (!process.env.IMAGEKIT_ENDPOINT) return;
+        if (image) {
+            setURI(
+                image.replace(
+                    process.env.IMAGEKIT_ENDPOINT,
+                    process.env.IMAGEKIT_ENDPOINT + 'tr:w-' + tempWidth,
+                ),
+            );
+        }
+    }, []);
 
     return (
         <Block
@@ -21,10 +41,12 @@ const ArticleCard = ({article, handlePress}: IArticleCardProp) => {
             flex={0}
             row={isHorizontal}
             marginBottom={sizes.sm}
-            width={isHorizontal ? CARD_WIDTH * 2 + sizes.sm : CARD_WIDTH}>
+            width={width}>
             <Image
                 resizeMode="cover"
-                source={{uri: image}}
+                source={{
+                    uri: uri,
+                }}
                 style={{
                     height: isHorizontal ? 114 : 110,
                     width: !isHorizontal ? '100%' : sizes.width / 2.435,
