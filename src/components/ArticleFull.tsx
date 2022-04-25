@@ -11,8 +11,11 @@ import Button from './Button';
 import {useTheme, useTranslation} from '../hooks/';
 import {IArticle} from '../constants/types';
 import {useState} from 'react';
+import {getDatabase, ref, increment, update, onValue} from 'firebase/database';
+import {getAuth} from 'firebase/auth';
 
 const ArticleFull = ({
+    id,
     title,
     description,
     image,
@@ -29,13 +32,31 @@ const ArticleFull = ({
     const [upvoted, setUpvoted] = useState(false);
     const [follow, setFollow] = useState(false);
 
+    const [numUpvotes, setNumUpvotes] = useState(0);
+
     const [uri, setURI] = useState(
         'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1yZWxhdGVkfDF8fHxlbnwwfHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
     );
 
     const handleUpvote = () => {
-        //send to db
-        setUpvoted(!upvoted);
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        // if upvoted=false, means user press Upvote to change to true
+        const isUpvote = !upvoted;
+
+        const updates = {
+            [`posts/${id}/numUpvotes`]: increment(isUpvote ? 1 : -1),
+            [`posts/${id}/upvotes/${user.uid}`]: isUpvote ? true : null,
+        };
+
+        update(ref(db), updates).catch((e) => {
+            console.log(e);
+        });
+
+        // setUpvoted(isUpvote);
     };
 
     const handleFollow = () => {
@@ -59,10 +80,39 @@ const ArticleFull = ({
             setURI(
                 image.replace(
                     process.env.IMAGEKIT_ENDPOINT,
-                    process.env.IMAGEKIT_ENDPOINT + 'tr:h-' + 170,
+                    process.env.IMAGEKIT_ENDPOINT + 'tr:ar-16-9,h-' + 1000,
                 ),
             );
         }
+    }, []);
+
+    // Get upvotes
+    useEffect(() => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const numUpvotesRef = ref(db, `posts/${id}/numUpvotes`);
+        const numUpvotesListener = onValue(numUpvotesRef, (snapshot) => {
+            // 0 is a valid value
+            const data = snapshot.val();
+            if (data === null) return;
+
+            setNumUpvotes(data);
+        });
+
+        const upvotesRef = ref(db, `posts/${id}/upvotes/${user.uid}`);
+        const upvotesListener = onValue(upvotesRef, (snapshot) => {
+            const data = snapshot.val();
+
+            setUpvoted(Boolean(data));
+        });
+
+        return () => {
+            numUpvotesListener();
+            upvotesListener();
+        };
     }, []);
 
     // render card for Newest & Fashion
@@ -163,7 +213,7 @@ const ArticleFull = ({
                                     transform={[{rotate: '270deg'}]}
                                 />
                                 <Text p black marginLeft={sizes.s}>
-                                    {'999 ' + t('common.upvote')}
+                                    {numUpvotes + ' ' + t('common.upvote')}
                                 </Text>
                             </Button>
                         </Block>
