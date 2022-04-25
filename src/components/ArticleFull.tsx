@@ -23,7 +23,7 @@ const ArticleFull = ({
     rating,
     location,
     timestamp,
-    user,
+    creator,
     onPress,
 }: IArticle) => {
     const {t} = useTranslation();
@@ -34,6 +34,7 @@ const ArticleFull = ({
     const [showFollow, setShowFollow] = useState(true);
 
     const [numUpvotes, setNumUpvotes] = useState(0);
+    const [creatorPosts, setCreatorPosts] = useState<string[]>();
 
     const [uri, setURI] = useState(
         'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1yZWxhdGVkfDF8fHxlbnwwfHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
@@ -63,54 +64,35 @@ const ArticleFull = ({
         const currentUser = getAuth().currentUser;
 
         if (!currentUser) return;
-        if (!user) return;
-        if (user.id == currentUser.uid) {
+        if (!creator) return;
+        if (creator.id == currentUser.uid) {
             console.log('You cannot follow yourself');
             return;
         }
 
         // if upvoted=false, means user press Upvote to change to true
         const applyFollow = !follow;
-
-        if (applyFollow) {
-            // Copy posts from user.id at /userPosts/user.id/ to /userFollowingPosts/currentUser.uid/
-        }
+        const followVal = applyFollow ? true : null;
 
         const updates = {
-            [`users/${currentUser.uid}/following/${user.id}`]: applyFollow
-                ? true
-                : null,
+            [`following/${currentUser.uid}/${creator.id}`]: followVal,
+            [`followers/${creator.id}/${currentUser.uid}`]: followVal,
         };
+
+        if (creatorPosts) {
+            // Copy creator's postid to /userFollowingPosts/
+            creatorPosts.forEach((postId) => {
+                updates[`/userFollowingPosts/${currentUser.uid}/${postId}`] =
+                    followVal;
+            });
+        }
 
         update(ref(db), updates).catch((e) => {
             console.log(e);
         });
     };
 
-    if (!user || !user.avatar) {
-        user = {
-            id: user?.id || -1,
-            name: user?.name || t('common.anonymous'),
-            avatar:
-                user?.avatar ||
-                'https://images.unsplash.com/photo-1569516449771-41c89ee14ca3?fit=crop&w=80&q=80',
-        };
-    }
-
-    useEffect(() => {
-        if (!process.env.IMAGEKIT_ENDPOINT) return;
-        if (image) {
-            setURI(
-                image.replace(
-                    process.env.IMAGEKIT_ENDPOINT,
-                    process.env.IMAGEKIT_ENDPOINT + 'tr:ar-16-9,h-' + 1000,
-                ),
-            );
-        }
-    }, []);
-
-    // Get upvotes
-    useEffect(() => {
+    const getNumUpvote = () => {
         const db = getDatabase();
         const user = getAuth().currentUser;
 
@@ -124,6 +106,14 @@ const ArticleFull = ({
 
             setNumUpvotes(data);
         });
+        return numUpvotesListener;
+    };
+
+    const getUpvotes = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
 
         const upvotesRef = ref(db, `posts/${id}/upvotes/${user.uid}`);
         const upvotesListener = onValue(upvotesRef, (snapshot) => {
@@ -132,27 +122,23 @@ const ArticleFull = ({
             setUpvoted(Boolean(data));
         });
 
-        return () => {
-            numUpvotesListener();
-            upvotesListener();
-        };
-    }, []);
+        return upvotesListener;
+    };
 
-    // Get follows
-    useEffect(() => {
+    const getFollows = () => {
         const db = getDatabase();
         const currentUser = getAuth().currentUser;
 
         if (!currentUser) return;
-        if (!user) return; //stop if no creator
-        if (currentUser.uid == user.id) {
+        if (!creator) return;
+        if (currentUser.uid == creator.id) {
             setShowFollow(false);
             return;
         }
 
         const followingRef = ref(
             db,
-            `users/${currentUser.uid}/following/${user.id}`,
+            `following/${currentUser.uid}/${creator.id}`,
         );
         const followingListener = onValue(followingRef, (snapshot) => {
             const data = snapshot.val();
@@ -160,10 +146,68 @@ const ArticleFull = ({
             setFollow(Boolean(data));
         });
 
+        return followingListener;
+    };
+
+    const getCreatorPosts = () => {
+        if (!creator) return;
+        if (creatorPosts) return;
+
+        const db = getDatabase();
+
+        const creatorPostsRef = ref(db, `userPosts/${creator.id}`);
+        const creatorPostListener = onValue(
+            creatorPostsRef,
+            (snapshot) => {
+                const data: string[] = [];
+                snapshot.forEach((postId) => {
+                    if (!postId.key) return;
+
+                    data.push(postId.key);
+                });
+                setCreatorPosts(data);
+            },
+            (e) => {
+                console.log(e);
+            },
+        );
+
+        return creatorPostListener;
+    };
+
+    useEffect(() => {
+        const creatorPostListener = getCreatorPosts();
+        const followingListener = getFollows();
+        const numUpvotesListener = getNumUpvote();
+        const upvotesListener = getUpvotes();
+
+        if (!process.env.IMAGEKIT_ENDPOINT) return;
+        if (image) {
+            setURI(
+                image.replace(
+                    process.env.IMAGEKIT_ENDPOINT,
+                    process.env.IMAGEKIT_ENDPOINT + 'tr:ar-16-9,h-' + 1000,
+                ),
+            );
+        }
+
         return () => {
-            followingListener();
+            creatorPostListener?.();
+            followingListener?.();
+            numUpvotesListener?.();
+            upvotesListener?.();
         };
     }, []);
+
+    if (!creator || !creator.avatar) {
+        creator = {
+            id: creator?.id || -1,
+            name: creator?.name || t('common.anonymous'),
+            avatar:
+                creator?.avatar ||
+                'https://images.unsplash.com/photo-1569516449771-41c89ee14ca3?fit=crop&w=80&q=80',
+        };
+    }
 
     // render card for Newest & Fashion
     if (category?.id !== 1) {
@@ -217,12 +261,12 @@ const ArticleFull = ({
                             radius={sizes.s}
                             width={sizes.xl}
                             height={sizes.xl}
-                            source={{uri: user?.avatar}}
+                            source={{uri: creator?.avatar}}
                             style={{backgroundColor: colors.white}}
                         />
                         <Block marginLeft={sizes.s}>
                             <Text p semibold>
-                                {user?.name}
+                                {creator?.name}
                             </Text>
                             <Text p gray>
                                 {timestamp &&
@@ -319,15 +363,15 @@ const ArticleFull = ({
                                 radius={sizes.s}
                                 width={sizes.xl}
                                 height={sizes.xl}
-                                source={{uri: user?.avatar}}
+                                source={{uri: creator?.avatar}}
                                 style={{backgroundColor: colors.white}}
                             />
                             <Block justify="center" marginLeft={sizes.s}>
                                 <Text p white semibold>
-                                    {user?.name}
+                                    {creator?.name}
                                 </Text>
                                 <Text p white>
-                                    {user?.department}
+                                    {creator?.department}
                                 </Text>
                             </Block>
                         </Block>
