@@ -1,10 +1,12 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Platform, Linking} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/core';
 
 import {Block, Button, Image, Text} from '../components/';
 import {useData, useTheme, useTranslation} from '../hooks/';
+import {getDatabase, onValue, ref} from 'firebase/database';
+import {getAuth} from 'firebase/auth';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -14,6 +16,11 @@ const Profile = () => {
     const navigation = useNavigation();
     const {assets, colors, sizes} = useTheme();
 
+    //USESSTATE CHANGES HERE BRUH
+    const [numPosts, setNumPosts] = useState(0);
+    const [numFollowers, setNumFollowers] = useState(0);
+    const [numFollowings, setNumFollowings] = useState(0);
+
     const IMAGE_SIZE = (sizes.width - (sizes.padding + sizes.sm) * 2) / 3;
     const IMAGE_VERTICAL_SIZE =
         (sizes.width - (sizes.padding + sizes.sm) * 2) / 2;
@@ -21,21 +28,94 @@ const Profile = () => {
     const IMAGE_VERTICAL_MARGIN =
         (sizes.width - (IMAGE_VERTICAL_SIZE + sizes.sm) * 2) / 2;
 
-    // const handleSocialLink = useCallback(
-    //     (type: 'twitter' | 'dribbble') => {
-    //         const url =
-    //             type === 'twitter'
-    //                 ? `https://twitter.com/${user?.social?.twitter}`
-    //                 : `https://dribbble.com/${user?.social?.dribbble}`;
+    //FUNCTION 1 get number of posts
+    const getNumPost = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
 
-    //         try {
-    //             Linking.openURL(url);
-    //         } catch (error) {
-    //             alert(`Cannot open URL: ${url}`);
-    //         }
-    //     },
-    //     [user],
-    // );
+        if (!user) return;
+
+        const numPostsRef = ref(db, `userPosts/${user.uid}`);
+        const numPostsListener = onValue(numPostsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data === null) return;
+            var dataLen = Object.keys(data).length;
+            console.log(dataLen);
+
+            setNumPosts(dataLen);
+        });
+        return numPostsListener;
+    };
+
+    //Function 2 Set Number Of Followers
+    const getNumFollowers = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const numFollowersRef = ref(db, `followers/${user.uid}`);
+        const numFollowersListener = onValue(numFollowersRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data === null) return;
+            var dataLen = Object.keys(data).length;
+            console.log(dataLen);
+
+            setNumFollowers(dataLen);
+        });
+        return numFollowersListener;
+    };
+
+    //Function 3 Set Number of Followings
+    const getNumFollowings = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const numFollowingsRef = ref(db, `following/${user.uid}`);
+        const numFollowingsListener = onValue(numFollowingsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data === null) return;
+            var dataLen = Object.keys(data).length;
+            console.log(dataLen);
+
+            setNumFollowings(dataLen);
+        });
+        return numFollowingsListener;
+    };
+
+    //Function 4 Set Number of Followings
+    const getNumFollowings = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const numFollowingsRef = ref(db, `following/${user.uid}`);
+        const numFollowingsListener = onValue(numFollowingsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data === null) return;
+            var dataLen = Object.keys(data).length;
+            console.log(dataLen);
+
+            setNumFollowings(dataLen);
+        });
+        return numFollowingsListener;
+    };
+
+    //UPDATE DIS
+    useEffect(() => {
+        const numPostsListener = getNumPost();
+        const numFollowersListener = getNumFollowers();
+        const numFollowingsListener = getNumFollowings();
+
+        return () => {
+            numPostsListener?.();
+            numFollowersListener?.();
+            numFollowingsListener?.();
+        };
+    }, []);
 
     return (
         <Block safe marginTop={sizes.md}>
@@ -101,34 +181,6 @@ const Profile = () => {
                                         </Text>
                                     </Block>
                                 </Button>
-                                {/* Social media buttons */}
-                                {/* <Button
-                                    shadow={false}
-                                    radius={sizes.m}
-                                    marginHorizontal={sizes.sm}
-                                    color="rgba(255,255,255,0.2)"
-                                    outlined={String(colors.white)}
-                                    onPress={() => handleSocialLink('twitter')}>
-                                    <Ionicons
-                                        size={18}
-                                        name="logo-twitter"
-                                        color={colors.white}
-                                    />
-                                </Button>
-                                <Button
-                                    shadow={false}
-                                    radius={sizes.m}
-                                    color="rgba(255,255,255,0.2)"
-                                    outlined={String(colors.white)}
-                                    onPress={() =>
-                                        handleSocialLink('dribbble')
-                                    }>
-                                    <Ionicons
-                                        size={18}
-                                        name="logo-dribbble"
-                                        color={colors.white}
-                                    />
-                                </Button> */}
                             </Block>
                         </Block>
                     </Image>
@@ -153,19 +205,17 @@ const Profile = () => {
                             paddingVertical={sizes.sm}
                             renderToHardwareTextureAndroid>
                             <Block align="center">
-                                <Text h5>{user?.stats?.posts}</Text>
+                                <Text h5>{numPosts}</Text>
                                 <Text>{t('profile.posts')}</Text>
                             </Block>
                             <Block align="center">
-                                <Text h5>
-                                    {(user?.stats?.followers || 0) / 1000}k
-                                </Text>
+                                {/* <Text h5>{(numFollowers || 0) / 1000}k</Text> */}
+                                <Text h5>{numFollowers}</Text>
                                 <Text>{t('profile.followers')}</Text>
                             </Block>
                             <Block align="center">
-                                <Text h5>
-                                    {(user?.stats?.following || 0) / 1000}k
-                                </Text>
+                                {/* <Text h5>{(numFollowings || 0) / 1000}k</Text> */}
+                                <Text h5>{numFollowings}</Text>
                                 <Text>{t('profile.following')}</Text>
                             </Block>
                         </Block>
