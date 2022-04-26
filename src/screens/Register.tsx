@@ -287,9 +287,7 @@ const Register = () => {
                                     <Text
                                         semibold
                                         onPress={() => {
-                                            Linking.openURL(
-                                                'https://www.creative-tim.com/terms',
-                                            );
+                                            Linking.openURL(t('app.link'));
                                         }}>
                                         {t('common.terms')}
                                     </Text>
