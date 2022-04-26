@@ -222,6 +222,7 @@ export interface ThemeIcons {
     components: ImageSourcePropType;
     document: ImageSourcePropType;
     documentation: ImageSourcePropType;
+    english: ImageSourcePropType;
     extras: ImageSourcePropType;
     flight: ImageSourcePropType;
     home: ImageSourcePropType;
@@ -239,6 +240,7 @@ export interface ThemeIcons {
     search: ImageSourcePropType;
     settings: ImageSourcePropType;
     star: ImageSourcePropType;
+    thai: ImageSourcePropType;
     train: ImageSourcePropType;
     users: ImageSourcePropType;
     warning: ImageSourcePropType;

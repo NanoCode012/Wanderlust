@@ -66,7 +66,7 @@ const DrawerContent = (
     props: DrawerContentComponentProps<DrawerContentOptions>,
 ) => {
     const {navigation} = props;
-    const {t} = useTranslation();
+    const {t, setLocale} = useTranslation();
     const {isDark, handleIsDark} = useData();
     const [active, setActive] = useState('Home');
     const {assets, colors, gradients, sizes} = useTheme();
@@ -204,7 +204,26 @@ const DrawerContent = (
                     </Text>
                 </Button>
 
-                <Block row justify="space-between" marginTop={sizes.sm}>
+                <Block row justify="flex-start" marginVertical={sizes.s}>
+                    <Block row justify="space-between">
+                        <Button row onPress={() => setLocale('en')}>
+                            <Image
+                                source={assets.english}
+                                marginHorizontal={sizes.s}
+                            />
+                            <Text color={labelColor}>{t('language.en')}</Text>
+                        </Button>
+                        <Button row onPress={() => setLocale('th')}>
+                            <Image
+                                source={assets.thai}
+                                marginHorizontal={sizes.s}
+                            />
+                            <Text color={labelColor}>{t('language.th')}</Text>
+                        </Button>
+                    </Block>
+                </Block>
+
+                <Block row justify="space-between">
                     <Text color={labelColor}>{t('darkMode')}</Text>
                     <Switch
                         checked={isDark}
