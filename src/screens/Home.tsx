@@ -508,7 +508,7 @@ const Home = () => {
                                 paddingHorizontal={sizes.xl}
                                 paddingVertical={sizes.s}
                                 disabled={isUploading || posted}>
-                                <Text white bold transform="uppercase">
+                                <Text p bold transform="uppercase">
                                     {t('home.createPost.uploadPhoto')}
                                 </Text>
                             </Button>
@@ -528,7 +528,7 @@ const Home = () => {
                                 disabled={
                                     title.length == 0 || isUploading || posted
                                 }>
-                                <Text white bold transform="uppercase">
+                                <Text p bold transform="uppercase">
                                     {t('home.createPost.post')}
                                 </Text>
                             </Button>
@@ -539,7 +539,7 @@ const Home = () => {
                                 marginBottom={sizes.base}
                                 paddingHorizontal={sizes.xl}
                                 paddingVertical={sizes.s}>
-                                <Text white bold transform="uppercase">
+                                <Text p bold transform="uppercase">
                                     {posted
                                         ? t('common.close')
                                         : t('common.cancel')}
