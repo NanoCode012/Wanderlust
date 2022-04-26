@@ -26,34 +26,36 @@ import {getAuth} from 'firebase/auth';
 const isAndroid = Platform.OS === 'android';
 
 const getBlobFromUri = async (uri: string) => {
-    // Default method
-    // const blob = await new Promise<Blob>((resolve, reject) => {
-    //     const xhr = new XMLHttpRequest();
-    //     xhr.onload = function () {
-    //         resolve(xhr.response);
-    //     };
-    //     xhr.onerror = function (e) {
-    //         reject(new TypeError('Network request failed'));
-    //     };
-    //     xhr.responseType = 'blob';
-    //     xhr.open('GET', uri, true);
-    //     xhr.send(null);
-    // });
-
+    // https://github.com/expo/expo/issues/2402#issuecomment-443726662
+    const blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            resolve(xhr.response);
+        };
+        xhr.onerror = function (e) {
+            console.log(e);
+            reject(new TypeError('Network request failed'));
+        };
+        xhr.responseType = 'blob';
+        xhr.open('GET', uri, true);
+        xhr.send(null);
+    });
     // https://stackoverflow.com/a/70898768
-    try {
-        const img = await fetch(uri);
-        const blob = await img.blob();
-        return blob;
-    } catch (e) {
-        console.error(e);
-        throw Error('An error occurred in getBlobFromUri');
-    }
+    // try {
+    //     const img = await fetch(uri);
+    //     const blob = await img.blob();
+    //     return blob;
+    // } catch (e) {
+    //     console.error(e);
+    //     throw Error('An error occurred in getBlobFromUri');
+    // }
+
+    return blob;
 };
 
 const manageFileUpload = async (
     postID: string,
-    fileBlob: Blob,
+    fileBlob: any,
     onStart?: () => void,
     onProgress?: (progress: number) => void,
     onComplete?: (downloadURL: string, postID: string) => void,
@@ -97,9 +99,11 @@ const manageFileUpload = async (
         },
         (error) => {
             // Something went wrong - dispatch onFail event with error  response
+            fileBlob.close();
             onFail && onFail(error);
         },
         () => {
+            fileBlob.close();
             // Upload completed successfully, now we can get the download URL
             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                 // dispatch on complete event
