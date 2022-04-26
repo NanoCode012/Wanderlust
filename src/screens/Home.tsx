@@ -132,7 +132,10 @@ interface IPostData {
     remoteURL?: string | null;
 }
 
-const extractArticle = (snapshot: DataSnapshot): IArticle | undefined => {
+const extractArticle = (
+    snapshot: DataSnapshot,
+    articleType: string = 'horizontal',
+): IArticle | undefined => {
     if (!snapshot.key) return;
     if (!process.env.IMAGEKIT_ENDPOINT) return;
 
@@ -150,6 +153,8 @@ const extractArticle = (snapshot: DataSnapshot): IArticle | undefined => {
         ...childVal,
         id: snapshot.key,
         image: image,
+        type: articleType,
+        timestamp: Number(childVal.createdAt),
     };
 };
 
@@ -368,7 +373,7 @@ const Home = () => {
 
                     const childRef = dbRef(db, `posts/${child.key}`);
                     onValue(childRef, (childSnapshot) => {
-                        const li = extractArticle(childSnapshot);
+                        const li = extractArticle(childSnapshot, 'vertical');
                         // console.log(li);
 
                         if (!li) return;
