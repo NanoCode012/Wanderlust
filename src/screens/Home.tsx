@@ -535,7 +535,7 @@ const Home = () => {
                             <Button
                                 onPress={() => setOpenCreate(false)}
                                 flex={1}
-                                gradient={gradients.dark}
+                                gradient={gradients.warning}
                                 marginBottom={sizes.base}
                                 paddingHorizontal={sizes.xl}
                                 paddingVertical={sizes.s}>
