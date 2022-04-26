@@ -61,11 +61,11 @@ const Profile = () => {
                                 radius={0}
                                 width={10}
                                 height={18}
-                                color={colors.white}
+                                color={colors.black}
                                 source={assets.arrow}
                                 transform={[{rotate: '180deg'}]}
                             />
-                            <Text p white marginLeft={sizes.s}>
+                            <Text p marginLeft={sizes.s}>
                                 {t('profile.title')}
                             </Text>
                         </Button>
@@ -76,14 +76,14 @@ const Profile = () => {
                                 marginBottom={sizes.sm}
                                 source={{uri: user?.avatar}}
                             />
-                            <Text h5 center white>
+                            <Text h4 center bold>
                                 {user?.name}
                             </Text>
                             {/* <Text p center white>
                                 {user?.department}
                             </Text> */}
                             <Block row marginVertical={sizes.m}>
-                                <Button
+                                {/* <Button
                                     white
                                     outlined
                                     shadow={false}
@@ -100,7 +100,7 @@ const Profile = () => {
                                             {t('common.follow')}
                                         </Text>
                                     </Block>
-                                </Button>
+                                </Button> */}
                                 {/* Social media buttons */}
                                 {/* <Button
                                     shadow={false}
