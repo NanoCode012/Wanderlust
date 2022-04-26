@@ -212,6 +212,56 @@ const ArticleFull = ({
         return (
             <TouchableWithoutFeedback onPress={onPress}>
                 <Block card padding={sizes.sm} marginTop={sizes.sm}>
+                    {/* user details */}
+                    <Block row flex={0} marginLeft={sizes.xs}>
+                        <Image
+                            radius={sizes.s}
+                            width={sizes.xl}
+                            height={sizes.xl}
+                            source={{uri: creator?.avatar}}
+                            style={{backgroundColor: colors.white}}
+                        />
+
+                        <Block marginLeft={sizes.s}>
+                            <Text p semibold>
+                                {creator?.name}
+                            </Text>
+                            <Text p gray>
+                                {timestamp &&
+                                    t('common.posted', {
+                                        date:
+                                            dayjs(timestamp).format(
+                                                'DD MMMM',
+                                            ) || '-',
+                                    })}
+                            </Text>
+                        </Block>
+                        {showFollow && (
+                            <Button
+                                row
+                                justify="flex-end"
+                                onPress={() => handleFollow()}>
+                                <Image
+                                    radius={0}
+                                    color={
+                                        follow ? colors.success : colors.black
+                                    }
+                                    source={assets.bell}
+                                />
+                                <Text p black marginLeft={sizes.s}>
+                                    {t('common.follow')}
+                                </Text>
+                            </Button>
+                        )}
+                    </Block>
+
+                    {/* article title */}
+                    {title && (
+                        <Text h4 marginBottom={sizes.sm}>
+                            {title}
+                        </Text>
+                    )}
+
                     <Image
                         height={170}
                         resizeMode="cover"
@@ -231,13 +281,6 @@ const ArticleFull = ({
                         </Text>
                     )}
 
-                    {/* article title */}
-                    {title && (
-                        <Text h4 marginBottom={sizes.sm}>
-                            {title}
-                        </Text>
-                    )}
-
                     {/* article description */}
                     {description && (
                         <Text
@@ -249,70 +292,24 @@ const ArticleFull = ({
                         </Text>
                     )}
 
-                    {/* user details */}
-                    <Block
-                        row
-                        flex={1}
-                        marginLeft={sizes.xs}
-                        marginBottom={sizes.xs}>
-                        <Image
-                            radius={sizes.s}
-                            width={sizes.xl}
-                            height={sizes.xl}
-                            source={{uri: creator?.avatar}}
-                            style={{backgroundColor: colors.white}}
-                        />
-                        <Block marginLeft={sizes.s}>
-                            <Text p semibold>
-                                {creator?.name}
+                    {/* Upvote and follow */}
+                    <Block row justify="space-evenly">
+                        <Button
+                            row
+                            justify="flex-end"
+                            onPress={() => handleUpvote()}>
+                            <Image
+                                radius={0}
+                                width={10}
+                                height={18}
+                                color={upvoted ? colors.success : colors.black}
+                                source={assets.arrow}
+                                transform={[{rotate: '270deg'}]}
+                            />
+                            <Text p black marginLeft={sizes.s}>
+                                {numUpvotes + ' ' + t('common.upvote')}
                             </Text>
-                            <Text p gray>
-                                {timestamp &&
-                                    t('common.posted', {
-                                        date:
-                                            dayjs(timestamp).format(
-                                                'DD MMMM',
-                                            ) || '-',
-                                    })}
-                            </Text>
-                            {showFollow && (
-                                <Button
-                                    row
-                                    justify="flex-end"
-                                    onPress={() => handleFollow()}>
-                                    <Image
-                                        radius={0}
-                                        color={
-                                            follow
-                                                ? colors.success
-                                                : colors.black
-                                        }
-                                        source={assets.bell}
-                                    />
-                                    <Text p black marginLeft={sizes.s}>
-                                        {t('common.follow')}
-                                    </Text>
-                                </Button>
-                            )}
-                            <Button
-                                row
-                                justify="flex-end"
-                                onPress={() => handleUpvote()}>
-                                <Image
-                                    radius={0}
-                                    width={10}
-                                    height={18}
-                                    color={
-                                        upvoted ? colors.success : colors.black
-                                    }
-                                    source={assets.arrow}
-                                    transform={[{rotate: '270deg'}]}
-                                />
-                                <Text p black marginLeft={sizes.s}>
-                                    {numUpvotes + ' ' + t('common.upvote')}
-                                </Text>
-                            </Button>
-                        </Block>
+                        </Button>
                     </Block>
 
                     {/* location & rating */}
