@@ -70,7 +70,7 @@ export const COLORS: ThemeColors = {
     icon: '#8392AB',
 
     /** blur tint color */
-    blurTint: 'light',
+    blurTint: 'dark',
 
     /** product link color */
     link: '#BC5AA5',
