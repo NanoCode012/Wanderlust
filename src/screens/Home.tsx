@@ -182,7 +182,7 @@ const Home = () => {
 
     const [user, setUser] = useState<User>();
     const [name, setName] = useState('');
-    const [followers, setFollowers] = useState([]);
+    const [followers, setFollowers] = useState<string[]>([]);
 
     const [openCreate, setOpenCreate] = useState(false);
     const [title, setTitle] = useState('');
@@ -279,7 +279,7 @@ const Home = () => {
         (tab: number) => {
             setTab(tab);
         },
-        [following, popular, setTab, setArticles],
+        [setTab, setArticles],
     );
 
     const handleArticlePress = useCallback(
@@ -330,8 +330,7 @@ const Home = () => {
         };
     }, [user]);
 
-    // get popular
-    useEffect(() => {
+    const getPopularPosts = () => {
         const db = getDatabase();
         const popularRef = query(
             dbRef(db, 'posts'),
@@ -346,13 +345,29 @@ const Home = () => {
             setPopular(li.reverse());
         });
 
-        return () => {
-            popularListener();
-        };
-    }, [user]);
+        return popularListener;
+    };
 
-    // get userFollowingPosts
-    useEffect(() => {
+    const getFollowers = () => {
+        if (!user) return;
+
+        const db = getDatabase();
+        const followersRef = query(dbRef(db, `followers/${user.uid}`));
+
+        const followersListener = onValue(
+            followersRef,
+            (snapshot) => {
+                // console.log('-------followers:');
+                // console.log(snapshot);
+                setFollowers(Object.keys(snapshot.val()));
+            },
+            (e) => console.log(e),
+        );
+
+        return followersListener;
+    };
+
+    const getUserFollowingPosts = () => {
         if (!user) return;
 
         const db = getDatabase();
@@ -384,8 +399,19 @@ const Home = () => {
             (e) => console.log(e),
         );
 
+        return followingListener;
+    };
+
+    // get userFollowingPosts
+    useEffect(() => {
+        const followingListener = getUserFollowingPosts();
+        const followerListener = getFollowers();
+        const popularPostsListener = getPopularPosts();
+
         return () => {
-            followingListener();
+            followingListener?.();
+            followerListener?.();
+            popularPostsListener?.();
         };
     }, [user]);
 
@@ -425,7 +451,7 @@ const Home = () => {
 
         // Write to every follower's block
         followers.forEach((follower) => {
-            updates[`/userFollowingPosts/${follower}/${newPostKey}`] = postData;
+            updates[`/userFollowingPosts/${follower}/${newPostKey}`] = true;
         });
 
         update(dbRef(database), updates)
