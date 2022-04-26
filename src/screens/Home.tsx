@@ -83,6 +83,8 @@ const manageFileUpload = async (
 
     // Trigger file upload start event
     onStart && onStart();
+    // Info for crash: https://github.com/expo/examples/issues/343
+    // https://github.com/firebase/firebase-js-sdk/issues/5848
     const uploadTask = uploadBytesResumable(storRef, fileBlob, metadata);
     // Listen for state changes, errors, and completion of the upload.
     uploadTask.on(
