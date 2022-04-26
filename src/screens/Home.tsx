@@ -13,6 +13,15 @@ import {
     serverTimestamp,
     update,
     Database,
+    onValue,
+    query,
+    orderByKey,
+    limitToLast,
+    orderByValue,
+    limitToFirst,
+    orderByChild,
+    get,
+    DataSnapshot,
 } from 'firebase/database';
 import {
     getStorage,
@@ -21,7 +30,7 @@ import {
     uploadBytesResumable,
     getDownloadURL,
 } from 'firebase/storage';
-import {getAuth} from 'firebase/auth';
+import {getAuth, User} from 'firebase/auth';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -118,16 +127,57 @@ interface IPostData {
         name?: string;
     };
     upvotes?: [];
+    numUpvotes: number;
     localPath?: string | null;
     remoteURL?: string | null;
 }
+
+const extractArticle = (snapshot: DataSnapshot): IArticle | undefined => {
+    if (!snapshot.key) return;
+    if (!process.env.IMAGEKIT_ENDPOINT) return;
+
+    const childVal: IPostData = snapshot.val();
+    if (!childVal) return;
+
+    const image = childVal.remoteURL
+        ? childVal.remoteURL.replace(
+              'https://firebasestorage.googleapis.com',
+              process.env.IMAGEKIT_ENDPOINT,
+          )
+        : undefined;
+
+    return {
+        ...childVal,
+        id: snapshot.key,
+        image: image,
+    };
+};
+
+const extractArticles = (snapshot: DataSnapshot) => {
+    const li: IArticle[] = [];
+    snapshot.forEach((childSnapshot) => {
+        const article = extractArticle(childSnapshot);
+        if (!article) return;
+
+        li.push(article);
+    });
+
+    return li;
+};
 
 const Home = () => {
     const {t} = useTranslation();
     const navigation = useNavigation();
     const [tab, setTab] = useState<number>(0);
-    const {following, popular, handleArticle} = useData();
-    const [articles, setArticles] = useState(following);
+    const {handleArticle} = useData();
+
+    const [following, setFollowing] = useState<IArticle[]>([]);
+    const [popular, setPopular] = useState<IArticle[]>([]);
+    const [articles, setArticles] = useState<IArticle[]>([]);
+
+    const [user, setUser] = useState<User>();
+    const [name, setName] = useState('');
+    const [followers, setFollowers] = useState([]);
 
     const [openCreate, setOpenCreate] = useState(false);
     const [title, setTitle] = useState('');
@@ -169,8 +219,6 @@ const Home = () => {
 
     const onComplete = (fileUrl: string, postID: string) => {
         setIsUploading(false);
-
-        const user = getAuth().currentUser;
 
         if (!user) throw new Error('No user found!');
 
@@ -225,7 +273,6 @@ const Home = () => {
     const handleArticles = useCallback(
         (tab: number) => {
             setTab(tab);
-            setArticles(tab === 0 ? following : popular);
         },
         [following, popular, setTab, setArticles],
     );
@@ -253,10 +300,96 @@ const Home = () => {
         resetField();
     }, [posted]);
 
-    const uploadPost = () => {
-        const user = getAuth().currentUser;
+    useEffect(() => {
+        const tempUser = getAuth().currentUser;
+        if (!tempUser) throw new Error('No user found!');
+        setUser(tempUser);
+    }, []);
 
-        if (!user) throw new Error('No user found!');
+    useEffect(() => {
+        if (!user) return;
+
+        const db = getDatabase();
+        const nameRef = dbRef(db, 'users/' + user.uid + '/name');
+
+        const nameListener = onValue(nameRef, (snapshot) => {
+            const data = snapshot.val();
+
+            if (data) {
+                setName(data);
+            }
+        });
+
+        return () => {
+            nameListener();
+        };
+    }, [user]);
+
+    // get popular
+    useEffect(() => {
+        const db = getDatabase();
+        const popularRef = query(
+            dbRef(db, 'posts'),
+            orderByChild('numUpvotes'),
+            limitToLast(5),
+        );
+
+        const popularListener = onValue(popularRef, (snapshot) => {
+            const li: IArticle[] = extractArticles(snapshot);
+            // console.log('-------popular');
+            // console.log(li.reverse());
+            setPopular(li.reverse());
+        });
+
+        return () => {
+            popularListener();
+        };
+    }, [user]);
+
+    // get userFollowingPosts
+    useEffect(() => {
+        if (!user) return;
+
+        const db = getDatabase();
+        const followingRef = query(
+            dbRef(db, `userFollowingPosts/${user.uid}`),
+            limitToLast(5),
+        );
+
+        const followingListener = onValue(
+            followingRef,
+            (snapshot) => {
+                // console.log('-------following:');
+                // console.log(snapshot);
+
+                setFollowing([]);
+                snapshot.forEach((child) => {
+                    if (!child.val()) return;
+
+                    const childRef = dbRef(db, `posts/${child.key}`);
+                    onValue(childRef, (childSnapshot) => {
+                        const li = extractArticle(childSnapshot);
+                        // console.log(li);
+
+                        if (!li) return;
+                        setFollowing((prevItem) => [li, ...prevItem]);
+                    });
+                });
+            },
+            (e) => console.log(e),
+        );
+
+        return () => {
+            followingListener();
+        };
+    }, [user]);
+
+    useEffect(() => {
+        setArticles(tab === 0 ? following : popular);
+    }, [tab, following, popular]);
+
+    const uploadPost = () => {
+        if (!user) return;
 
         const database = getDatabase();
 
@@ -272,16 +405,23 @@ const Home = () => {
             createdAt: serverTimestamp(),
             creator: {
                 id: user.uid,
-                // name: user.displayName,
+                name: name,
             },
             upvotes: [],
+            numUpvotes: 0,
             localPath: selectedImageURI
                 ? 'posts/' + newPostKey + '/background.jpeg'
                 : null,
         };
         const updates = {
             ['/posts/' + newPostKey]: postData,
+            ['/userPosts/' + user.uid + '/' + newPostKey]: true,
         };
+
+        // Write to every follower's block
+        followers.forEach((follower) => {
+            updates[`/userFollowingPosts/${follower}/${newPostKey}`] = postData;
+        });
 
         update(dbRef(database), updates)
             .then(() => {
@@ -380,7 +520,9 @@ const Home = () => {
                                 marginBottom={sizes.base}
                                 paddingHorizontal={sizes.xl}
                                 paddingVertical={sizes.s}
-                                disabled={isUploading || posted}>
+                                disabled={
+                                    title.length == 0 || isUploading || posted
+                                }>
                                 <Text white bold transform="uppercase">
                                     {t('home.createPost.post')}
                                 </Text>
@@ -483,7 +625,7 @@ const Home = () => {
                         <ArticleCard
                             article={article}
                             handlePress={() => handleArticlePress(article)}
-                            key={`card-${article?.id}`}
+                            key={`card-${article?.id}-${Math.random()}`}
                         />
                     ))}
                 </Block>
