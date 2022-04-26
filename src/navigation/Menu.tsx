@@ -56,7 +56,6 @@ const ScreensStack = () => {
                     borderWidth: isDrawerOpen ? 1 : 0,
                 },
             ])}>
-            {/*  */}
             <Screens />
         </Animated.View>
     );
@@ -211,7 +210,6 @@ const DrawerContent = (
                         checked={isDark}
                         onPress={(checked) => {
                             handleIsDark(checked);
-                            Alert.alert(t('pro.title'), t('pro.alert'));
                         }}
                     />
                 </Block>
@@ -222,7 +220,7 @@ const DrawerContent = (
 
 /* drawer menu navigation */
 export default () => {
-    const {gradients} = useTheme();
+    const {gradients, colors} = useTheme();
     const {isLoggedIn} = useData();
 
     return (
@@ -230,13 +228,13 @@ export default () => {
             <Drawer.Navigator
                 drawerType="slide"
                 overlayColor="transparent"
-                sceneContainerStyle={{backgroundColor: 'transparent'}}
+                sceneContainerStyle={{backgroundColor: colors.background}}
                 drawerContent={(props) => <DrawerContent {...props} />}
                 drawerStyle={{
                     flex: 1,
                     width: '60%',
                     borderRightWidth: 0,
-                    backgroundColor: 'transparent',
+                    backgroundColor: colors.background,
                 }}
                 screenOptions={{gestureEnabled: isLoggedIn}}>
                 <Drawer.Screen name="Screens" component={ScreensStack} />
