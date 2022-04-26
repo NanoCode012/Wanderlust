@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Alert, Animated, Linking, StyleSheet} from 'react-native';
+import {Alert, Animated, Dimensions, Linking, StyleSheet} from 'react-native';
 
 import {
     useIsDrawerOpen,
@@ -224,6 +224,7 @@ const DrawerContent = (
 export default () => {
     const {gradients} = useTheme();
     const {isLoggedIn} = useData();
+    const width = Math.min(250, Dimensions.get('window').width * 0.6); // take min of either 60% of width or 250
 
     return (
         <Block gradient={gradients.light}>
@@ -234,7 +235,7 @@ export default () => {
                 drawerContent={(props) => <DrawerContent {...props} />}
                 drawerStyle={{
                     flex: 1,
-                    width: '60%',
+                    width: width,
                     borderRightWidth: 0,
                     backgroundColor: 'transparent',
                 }}
