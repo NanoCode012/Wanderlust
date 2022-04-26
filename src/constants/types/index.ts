@@ -31,7 +31,7 @@ export interface IArticleOptions {
     image?: string;
 }
 export interface IArticle {
-    id?: number;
+    id?: string;
     title?: string;
     type?: string;
     description?: string;
@@ -39,7 +39,7 @@ export interface IArticle {
     image?: string;
     location?: ILocation;
     rating?: number;
-    user?: IUser;
+    creator?: IUser;
     offers?: IProduct[];
     options?: IArticleOptions[];
     timestamp?: number;
