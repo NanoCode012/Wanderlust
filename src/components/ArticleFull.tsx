@@ -227,16 +227,17 @@ const ArticleFull = ({
                                 {creator?.name}
                             </Text>
                             <Text p gray>
-                                {timestamp &&
-                                    t('common.posted', {
-                                        date:
-                                            dayjs(timestamp).format(
-                                                'DD MMMM',
-                                            ) || '-',
-                                    })}
+                                {timestamp
+                                    ? t('common.posted', {
+                                          date:
+                                              dayjs(timestamp).format(
+                                                  'DD MMMM',
+                                              ) || '-',
+                                      })
+                                    : null}
                             </Text>
                         </Block>
-                        {showFollow && (
+                        {showFollow ? (
                             <Button
                                 row
                                 justify="flex-end"
@@ -252,15 +253,15 @@ const ArticleFull = ({
                                     {t('common.follow')}
                                 </Text>
                             </Button>
-                        )}
+                        ) : null}
                     </Block>
 
                     {/* article title */}
-                    {title && (
+                    {title ? (
                         <Text h4 marginBottom={sizes.sm}>
                             {title}
                         </Text>
-                    )}
+                    ) : null}
 
                     <Image
                         height={170}
@@ -268,7 +269,7 @@ const ArticleFull = ({
                         source={{uri: uri}}
                     />
                     {/* article category */}
-                    {category?.name && (
+                    {category?.name ? (
                         <Text
                             h5
                             bold
@@ -279,10 +280,10 @@ const ArticleFull = ({
                             gradient={gradients.primary}>
                             {category?.name}
                         </Text>
-                    )}
+                    ) : null}
 
                     {/* article description */}
-                    {description && (
+                    {description ? (
                         <Text
                             p
                             marginTop={sizes.s}
@@ -290,7 +291,7 @@ const ArticleFull = ({
                             marginBottom={sizes.sm}>
                             {description}
                         </Text>
-                    )}
+                    ) : null}
 
                     {/* Upvote and follow */}
                     <Block row justify="space-evenly">
@@ -313,7 +314,7 @@ const ArticleFull = ({
                     </Block>
 
                     {/* location & rating */}
-                    {(Boolean(location) || Boolean(rating)) && (
+                    {Boolean(location) || Boolean(rating) ? (
                         <Block row align="center">
                             <Image
                                 source={icons.location}
@@ -330,7 +331,7 @@ const ArticleFull = ({
                                 {rating}/5
                             </Text>
                         </Block>
-                    )}
+                    ) : null}
                 </Block>
             </TouchableWithoutFeedback>
         );
