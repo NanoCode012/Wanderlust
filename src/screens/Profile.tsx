@@ -85,24 +85,24 @@ const Profile = () => {
         return numFollowingsListener;
     };
 
-    //Function 4 Set Number of Followings
-    const getNumFollowings = () => {
-        const db = getDatabase();
-        const user = getAuth().currentUser;
+    // //Function 4 Set Number of Followings
+    // const getNumFollowings = () => {
+    //     const db = getDatabase();
+    //     const user = getAuth().currentUser;
 
-        if (!user) return;
+    //     if (!user) return;
 
-        const numFollowingsRef = ref(db, `following/${user.uid}`);
-        const numFollowingsListener = onValue(numFollowingsRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data === null) return;
-            var dataLen = Object.keys(data).length;
-            console.log(dataLen);
+    //     const numFollowingsRef = ref(db, `following/${user.uid}`);
+    //     const numFollowingsListener = onValue(numFollowingsRef, (snapshot) => {
+    //         const data = snapshot.val();
+    //         if (data === null) return;
+    //         var dataLen = Object.keys(data).length;
+    //         console.log(dataLen);
 
-            setNumFollowings(dataLen);
-        });
-        return numFollowingsListener;
-    };
+    //         setNumFollowings(dataLen);
+    //     });
+    //     return numFollowingsListener;
+    // };
 
     //UPDATE DIS
     useEffect(() => {
