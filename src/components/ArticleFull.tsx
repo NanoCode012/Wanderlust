@@ -184,7 +184,7 @@ const ArticleFull = ({
             setURI(
                 image.replace(
                     process.env.IMAGEKIT_ENDPOINT,
-                    process.env.IMAGEKIT_ENDPOINT + 'tr:ar-16-9,h-' + 1000,
+                    process.env.IMAGEKIT_ENDPOINT + '/tr:ar-16-9,h-1000/',
                 ),
             );
         }

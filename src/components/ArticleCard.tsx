@@ -29,7 +29,7 @@ const ArticleCard = ({article, handlePress}: IArticleCardProp) => {
             setURI(
                 image.replace(
                     process.env.IMAGEKIT_ENDPOINT,
-                    process.env.IMAGEKIT_ENDPOINT + 'tr:w-' + tempWidth,
+                    process.env.IMAGEKIT_ENDPOINT + `/tr:w-${tempWidth}/`,
                 ),
             );
         }

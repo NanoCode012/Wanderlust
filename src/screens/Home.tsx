@@ -3,7 +3,15 @@ import {Linking, Platform} from 'react-native';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
 import {useNavigation} from '@react-navigation/core';
-import {Block, Button, Image, Input, Text, ArticleCard} from '../components/';
+import {
+    Block,
+    Button,
+    Image,
+    Input,
+    Text,
+    ArticleCard,
+    ImageSelector,
+} from '../components/';
 import {IArticle} from '../constants/types';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -34,90 +42,6 @@ import {getAuth, User} from 'firebase/auth';
 
 const isAndroid = Platform.OS === 'android';
 
-const getBlobFromUri = async (uri: string) => {
-    // Default method
-    // const blob = await new Promise<Blob>((resolve, reject) => {
-    //     const xhr = new XMLHttpRequest();
-    //     xhr.onload = function () {
-    //         resolve(xhr.response);
-    //     };
-    //     xhr.onerror = function (e) {
-    //         reject(new TypeError('Network request failed'));
-    //     };
-    //     xhr.responseType = 'blob';
-    //     xhr.open('GET', uri, true);
-    //     xhr.send(null);
-    // });
-
-    // https://stackoverflow.com/a/70898768
-    try {
-        const img = await fetch(uri);
-        const blob = await img.blob();
-        return blob;
-    } catch (e) {
-        console.error(e);
-        throw Error('An error occurred in getBlobFromUri');
-    }
-};
-
-const manageFileUpload = async (
-    postID: string,
-    fileBlob: Blob,
-    onStart?: () => void,
-    onProgress?: (progress: number) => void,
-    onComplete?: (downloadURL: string, postID: string) => void,
-    onFail?: (error: StorageError) => void,
-) => {
-    const imgName = 'background';
-    const storage = getStorage();
-    const pathToStore = `posts/${postID}/${imgName}.jpeg`;
-
-    const storRef = storageRef(storage, pathToStore);
-
-    // Create file metadata including the content type
-    const metadata = {
-        contentType: 'image/jpeg',
-    };
-
-    // Trigger file upload start event
-    onStart && onStart();
-    const uploadTask = uploadBytesResumable(storRef, fileBlob, metadata);
-    // Listen for state changes, errors, and completion of the upload.
-    uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-            const progress =
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-
-            // Monitor uploading progress
-            onProgress && onProgress(Math.round(progress));
-            switch (snapshot.state) {
-                case 'paused':
-                    // console.log('Upload is paused');
-                    break;
-                case 'running':
-                    // console.log('Upload is running');
-                    break;
-                default:
-                    // console.log(snapshot.state);
-                    break;
-            }
-        },
-        (error) => {
-            // Something went wrong - dispatch onFail event with error  response
-            onFail && onFail(error);
-        },
-        () => {
-            // Upload completed successfully, now we can get the download URL
-            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                // dispatch on complete event
-                onComplete && onComplete(downloadURL, postID);
-            });
-        },
-    );
-};
-
 interface IPostData {
     title: string;
     description: string;
@@ -137,17 +61,27 @@ const extractArticle = (
     articleType: string = 'horizontal',
 ): IArticle | undefined => {
     if (!snapshot.key) return;
-    if (!process.env.IMAGEKIT_ENDPOINT) return;
+    if (
+        !process.env.IMAGEKIT_ENDPOINT ||
+        !process.env.CLOUDINARY_RESULT_ENDPOINT
+    )
+        return;
 
     const childVal: IPostData = snapshot.val();
     if (!childVal) return;
 
-    const image = childVal.remoteURL
-        ? childVal.remoteURL.replace(
-              'https://firebasestorage.googleapis.com',
-              process.env.IMAGEKIT_ENDPOINT,
-          )
-        : undefined;
+    let image = undefined;
+    if (childVal.remoteURL) {
+        image = childVal.remoteURL.replace(
+            'https://firebasestorage.googleapis.com',
+            process.env.IMAGEKIT_ENDPOINT,
+        );
+
+        image = image.replace(
+            process.env.CLOUDINARY_RESULT_ENDPOINT,
+            process.env.IMAGEKIT_ENDPOINT,
+        );
+    }
 
     return {
         ...childVal,
@@ -189,32 +123,13 @@ const Home = () => {
     const [description, setDescription] = useState('');
 
     const [isUploading, setIsUploading] = useState(false);
-    const [selectedImageURI, setSelectedImageURI] = useState('');
+    const [selectedImageBase64, setSelectedImageBase64] = useState('');
     const [progress, setProgress] = useState(0);
     const [posted, setPosted] = useState(false);
 
     const [storageError, setStorageError] = useState<StorageError>();
 
     const {assets, colors, fonts, gradients, sizes} = useTheme();
-
-    let openImagePickerAsync = async () => {
-        let permissionResult =
-            await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-        if (permissionResult.granted === false) {
-            alert('Permission to access camera roll is required!');
-            return;
-        }
-
-        let pickerResult = await ImagePicker.launchImageLibraryAsync({
-            quality: 0.5, // Prevents app crash due to firebase (9.x) storage upload bug
-        });
-        if (pickerResult.cancelled === true) {
-            return;
-        }
-
-        setSelectedImageURI(pickerResult.uri);
-    };
 
     const onStart = () => {
         setIsUploading(true);
@@ -242,39 +157,49 @@ const Home = () => {
             });
     };
 
-    const onFail = (error: StorageError) => {
-        setStorageError(error);
-        switch (error.code) {
-            case 'storage/unauthorized':
-                console.log(
-                    "User doesn't have permission to access the object",
-                );
-                break;
-            case 'storage/canceled':
-                console.log('User canceled the upload');
-                break;
-            case 'storage/unknown':
-                console.log(
-                    'Unknown error occurred, inspect error.serverResponse',
-                );
-                break;
-        }
+    const onFail = () => {
         resetField();
     };
 
     const handleCloudImageUpload = async (postID: string) => {
-        if (!selectedImageURI) return;
+        if (!selectedImageBase64) return;
+        if (
+            !process.env.CLOUDINARY_ENDPOINT ||
+            !process.env.CLOUDINARY_UPLOAD_PRESET
+        ) {
+            console.log('Failed to upload');
+            return;
+        }
 
-        const blob = await getBlobFromUri(selectedImageURI);
+        const base64Img = `data:image/jpg;base64,${selectedImageBase64}`;
+        const apiURL = process.env.CLOUDINARY_ENDPOINT;
+        const data = {
+            file: base64Img,
+            upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
+        };
 
-        await manageFileUpload(
-            postID,
-            blob,
-            onStart,
-            onProgress,
-            onComplete,
-            onFail,
-        );
+        onStart();
+
+        fetch(apiURL, {
+            body: JSON.stringify(data),
+            headers: {
+                'content-type': 'application/json',
+            },
+            method: 'POST',
+        })
+            .then(async (response) => {
+                let data = await response.json();
+                if (data.secure_url) {
+                    // console.log(data.secure_url);
+                    onComplete(data.secure_url, postID);
+                } else {
+                    throw Error('No secure url');
+                }
+            })
+            .catch((e) => {
+                onFail();
+                console.log(e);
+            });
     };
 
     const handleArticles = useCallback(
@@ -295,7 +220,7 @@ const Home = () => {
     const resetField = () => {
         setTitle('');
         setDescription('');
-        setSelectedImageURI('');
+        setSelectedImageBase64('');
     };
 
     useEffect(() => {
@@ -445,9 +370,6 @@ const Home = () => {
             },
             upvotes: [],
             numUpvotes: 0,
-            localPath: selectedImageURI
-                ? 'posts/' + newPostKey + '/background.jpeg'
-                : null,
         };
         const updates = {
             ['/posts/' + newPostKey]: postData,
@@ -527,22 +449,10 @@ const Home = () => {
                             />
                         </Block>
                         <Block flex={1}>
-                            <Button
-                                onPress={openImagePickerAsync}
-                                flex={1}
-                                gradient={
-                                    selectedImageURI
-                                        ? gradients.success
-                                        : gradients.info
-                                }
-                                marginBottom={sizes.base}
-                                paddingHorizontal={sizes.xl}
-                                paddingVertical={sizes.s}
-                                disabled={isUploading || posted}>
-                                <Text p bold transform="uppercase">
-                                    {t('home.createPost.uploadPhoto')}
-                                </Text>
-                            </Button>
+                            <ImageSelector
+                                disabled={isUploading || posted}
+                                setSelectedImageBase64={setSelectedImageBase64}
+                            />
                             <Button
                                 onPress={() => {
                                     handlePost();

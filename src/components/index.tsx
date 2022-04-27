@@ -10,6 +10,7 @@ import Article from './Article';
 import ArticleFull from './ArticleFull';
 import ArticleCard from './ArticleCard';
 import Product from './Product';
+import ImageSelector from './ImageSelector';
 
 export {
     Block,
@@ -24,4 +25,5 @@ export {
     ArticleCard,
     Product,
     Modal,
+    ImageSelector,
 };
