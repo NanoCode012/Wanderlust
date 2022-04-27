@@ -262,7 +262,7 @@ const Home = () => {
         const popularRef = query(
             dbRef(db, 'posts'),
             orderByChild('numUpvotes'),
-            limitToLast(5),
+            limitToLast(6),
         );
 
         const popularListener = onValue(popularRef, (snapshot) => {
@@ -303,7 +303,7 @@ const Home = () => {
         const db = getDatabase();
         const followingRef = query(
             dbRef(db, `userFollowingPosts/${user.uid}`),
-            limitToLast(5),
+            limitToLast(6),
         );
 
         const followingListener = onValue(
