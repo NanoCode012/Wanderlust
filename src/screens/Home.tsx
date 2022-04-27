@@ -359,7 +359,10 @@ const Home = () => {
             (snapshot) => {
                 // console.log('-------followers:');
                 // console.log(snapshot);
-                setFollowers(Object.keys(snapshot.val()));
+                const data = snapshot.val();
+                if (!data) return;
+
+                setFollowers(Object.keys(data));
             },
             (e) => console.log(e),
         );
