@@ -264,8 +264,8 @@ const ArticleFull = ({
                     ) : null}
 
                     <Image
-                        height={170}
-                        resizeMode="cover"
+                        height={340}
+                        resizeMode="contain"
                         source={{uri: uri}}
                     />
                     {/* article category */}
@@ -297,7 +297,7 @@ const ArticleFull = ({
                     <Block row justify="space-evenly">
                         <Button
                             row
-                            justify="flex-end"
+                            // justify="flex-end"
                             onPress={() => handleUpvote()}>
                             <Image
                                 radius={0}
