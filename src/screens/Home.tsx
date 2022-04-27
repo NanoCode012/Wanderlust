@@ -206,7 +206,9 @@ const Home = () => {
             return;
         }
 
-        let pickerResult = await ImagePicker.launchImageLibraryAsync();
+        let pickerResult = await ImagePicker.launchImageLibraryAsync({
+            quality: 0.5, // Prevents app crash due to firebase (9.x) storage upload bug
+        });
         if (pickerResult.cancelled === true) {
             return;
         }
