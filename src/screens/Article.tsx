@@ -38,7 +38,7 @@ const ArticleScreen = () => {
                 row
                 flex={1}
                 color={colors.background}
-                style={{paddingBottom: 200}}>
+                style={{paddingBottom: 100}}>
                 <ArticleFull {...article} />
             </Block>
         </Block>
