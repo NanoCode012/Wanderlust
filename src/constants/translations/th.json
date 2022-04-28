@@ -50,7 +50,8 @@
         },
         "upvote": "โหวตเห็นด้วย",
         "cancel": "ยกเลิก",
-        "close": "ปิด"
+        "close": "ปิด",
+        "delete": "ลบ"
     },
     "app": {
         "name": "Wanderlust",

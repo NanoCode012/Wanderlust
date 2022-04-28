@@ -242,6 +242,7 @@ export interface ThemeIcons {
     star: ImageSourcePropType;
     thai: ImageSourcePropType;
     train: ImageSourcePropType;
+    trash: ImageSourcePropType;
     users: ImageSourcePropType;
     warning: ImageSourcePropType;
 }

@@ -11,8 +11,19 @@ import Button from './Button';
 import {useTheme, useTranslation} from '../hooks/';
 import {IArticle} from '../constants/types';
 import {useState} from 'react';
-import {getDatabase, ref, increment, update, onValue} from 'firebase/database';
+import {
+    getDatabase,
+    ref,
+    increment,
+    update,
+    onValue,
+    query,
+} from 'firebase/database';
 import {getAuth} from 'firebase/auth';
+import {
+    NavigationHelpersContext,
+    useNavigation,
+} from '@react-navigation/native';
 
 const ArticleFull = ({
     id,
@@ -27,11 +38,16 @@ const ArticleFull = ({
     onPress,
 }: IArticle) => {
     const {t} = useTranslation();
+    const navigation = useNavigation();
     const {colors, gradients, icons, sizes, assets} = useTheme();
 
     const [upvoted, setUpvoted] = useState(false);
     const [follow, setFollow] = useState(false);
+
+    const [followers, setFollowers] = useState<string[]>([]);
+
     const [showFollow, setShowFollow] = useState(true);
+    const [showDelete, setShowDelete] = useState(false);
 
     const [numUpvotes, setNumUpvotes] = useState(0);
     const [creatorPosts, setCreatorPosts] = useState<string[]>();
@@ -90,6 +106,31 @@ const ArticleFull = ({
         });
     };
 
+    const handleDelete = () => {
+        const user = getAuth().currentUser;
+        const database = getDatabase();
+
+        if (!user) return;
+
+        const updates = {
+            [`posts/${id}`]: null,
+            [`userPosts/${user.uid}/${id}`]: null,
+        };
+
+        // Write to every follower's block
+        followers.forEach((follower) => {
+            updates[`/userFollowingPosts/${follower}/${id}`] = null;
+        });
+
+        update(ref(database), updates)
+            .then(() => {
+                navigation.goBack();
+            })
+            .catch((e) => {
+                console.log(e);
+            });
+    };
+
     const getNumUpvote = () => {
         const db = getDatabase();
         const user = getAuth().currentUser;
@@ -123,7 +164,7 @@ const ArticleFull = ({
         return upvotesListener;
     };
 
-    const getFollows = () => {
+    const getFollowing = () => {
         const db = getDatabase();
         const currentUser = getAuth().currentUser;
 
@@ -145,6 +186,28 @@ const ArticleFull = ({
         });
 
         return followingListener;
+    };
+
+    const getFollowers = () => {
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const db = getDatabase();
+        const followersRef = query(ref(db, `followers/${user.uid}`));
+
+        const followersListener = onValue(
+            followersRef,
+            (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                setFollowers(Object.keys(data));
+            },
+            (e) => console.log(e),
+        );
+
+        return followersListener;
     };
 
     const getCreatorPosts = () => {
@@ -173,11 +236,24 @@ const ArticleFull = ({
         return creatorPostListener;
     };
 
+    const checkDelete = () => {
+        const currentUser = getAuth().currentUser;
+
+        if (!currentUser) return;
+        if (!creator) return;
+        if (currentUser.uid == creator.id) {
+            setShowDelete(true);
+        }
+    };
+
     useEffect(() => {
         const creatorPostListener = getCreatorPosts();
-        const followingListener = getFollows();
+        const followingListener = getFollowing();
+        const followerListener = getFollowers();
         const numUpvotesListener = getNumUpvote();
         const upvotesListener = getUpvotes();
+
+        checkDelete();
 
         if (!process.env.IMAGEKIT_ENDPOINT) return;
         if (image) {
@@ -192,6 +268,7 @@ const ArticleFull = ({
         return () => {
             creatorPostListener?.();
             followingListener?.();
+            followerListener?.();
             numUpvotesListener?.();
             upvotesListener?.();
         };
@@ -251,6 +328,24 @@ const ArticleFull = ({
                                 />
                                 <Text p black marginLeft={sizes.s}>
                                     {t('common.follow')}
+                                </Text>
+                            </Button>
+                        ) : null}
+
+                        {showDelete ? (
+                            <Button
+                                row
+                                justify="flex-end"
+                                onPress={() => {
+                                    handleDelete();
+                                }}>
+                                <Image
+                                    radius={0}
+                                    color={colors.danger}
+                                    source={assets.trash}
+                                />
+                                <Text p black marginLeft={sizes.s}>
+                                    {t('common.delete')}
                                 </Text>
                             </Button>
                         ) : null}
