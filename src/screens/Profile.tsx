@@ -1,18 +1,66 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Platform, Linking} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/core';
 
-import {Block, Button, Image, Text} from '../components/';
+import {ArticleCard, Block, Button, Image, Text} from '../components/';
 import {useData, useTheme, useTranslation} from '../hooks/';
+import {getAuth} from 'firebase/auth';
+import {
+    getDatabase,
+    ref,
+    onValue,
+    limitToLast,
+    DataSnapshot,
+    push,
+    serverTimestamp,
+    update,
+    Database,
+    query,
+    orderByKey,
+    orderByValue,
+    limitToFirst,
+    orderByChild,
+    get,
+} from 'firebase/database';
+import {IArticle} from '../constants/types';
 
 const isAndroid = Platform.OS === 'android';
+
+interface IPostData {
+    title: string;
+    description: string;
+    createdAt: object;
+    creator: {
+        id: string;
+        name?: string;
+    };
+    upvotes?: [];
+    numUpvotes: number;
+    localPath?: string | null;
+    remoteURL?: string | null;
+}
 
 const Profile = () => {
     const {user} = useData();
     const {t} = useTranslation();
     const navigation = useNavigation();
     const {assets, colors, sizes} = useTheme();
+
+    //USESSTATE CHANGES HERE BRUH
+    const [numPosts, setNumPosts] = useState(0);
+    const [numFollowers, setNumFollowers] = useState(0);
+    const [numFollowings, setNumFollowings] = useState(0);
+    const [name, setName] = useState('');
+    const [about, setAbout] = useState('');
+    // const [popular, setPopular] = useState<IArticle[]>([]);
+    const [popular, setPopular] = useState(0);
+    const [recent, setRecent] = useState<IArticle[]>();
+    const [tab, setTab] = useState<number>(0);
+    const {handleArticle} = useData();
+
+    const [following, setFollowing] = useState<IArticle[]>([]);
+    const [articles, setArticles] = useState<IArticle[]>([]);
 
     const IMAGE_SIZE = (sizes.width - (sizes.padding + sizes.sm) * 2) / 3;
     const IMAGE_VERTICAL_SIZE =
@@ -21,21 +69,195 @@ const Profile = () => {
     const IMAGE_VERTICAL_MARGIN =
         (sizes.width - (IMAGE_VERTICAL_SIZE + sizes.sm) * 2) / 2;
 
-    // const handleSocialLink = useCallback(
-    //     (type: 'twitter' | 'dribbble') => {
-    //         const url =
-    //             type === 'twitter'
-    //                 ? `https://twitter.com/${user?.social?.twitter}`
-    //                 : `https://dribbble.com/${user?.social?.dribbble}`;
+    //EXPERIMENT
+    const handleArticles = useCallback(
+        (tab: number) => {
+            setTab(tab);
+        },
+        [setTab, setArticles],
+    );
 
-    //         try {
-    //             Linking.openURL(url);
-    //         } catch (error) {
-    //             alert(`Cannot open URL: ${url}`);
-    //         }
-    //     },
-    //     [user],
-    // );
+    const handleArticlePress = useCallback(
+        (article: IArticle) => {
+            handleArticle(article);
+            navigation.navigate('Article');
+        },
+        [handleArticle],
+    );
+
+    //FUNCTION 1 get number of posts
+    const getNumPost = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const numPostsRef = ref(db, `userPosts/${user.uid}`);
+        const numPostsListener = onValue(numPostsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data === null) return;
+            var dataLen = Object.keys(data).length;
+            console.log(dataLen);
+
+            setNumPosts(dataLen);
+        });
+        return numPostsListener;
+    };
+
+    //Function 2 Set Number Of Followers
+    const getNumFollowers = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const numFollowersRef = ref(db, `followers/${user.uid}`);
+        const numFollowersListener = onValue(numFollowersRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data === null) return;
+            var dataLen = Object.keys(data).length;
+            console.log(dataLen);
+
+            setNumFollowers(dataLen);
+        });
+        return numFollowersListener;
+    };
+
+    //Function 3 Set Number of Followings
+    const getNumFollowings = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const numFollowingsRef = ref(db, `following/${user.uid}`);
+        const numFollowingsListener = onValue(numFollowingsRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data === null) return;
+            var dataLen = Object.keys(data).length;
+            console.log(dataLen);
+
+            setNumFollowings(dataLen);
+        });
+        return numFollowingsListener;
+    };
+
+    //Function 4 Set UserName
+    const getName = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const nameRef = ref(db, `users/${user.uid}/name`);
+        const nameListener = onValue(nameRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data === null) return;
+            // var dataLen = Object.keys(data).length;
+            // console.log(dataLen);
+            console.log(data);
+            setName(data);
+        });
+        return nameListener;
+    };
+
+    //Function 5 Set AboutMe
+    const getAbout = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const aboutRef = ref(db, `users/${user.uid}/name`);
+        const aboutListener = onValue(aboutRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data === null) return;
+            // var dataLen = Object.keys(data).length;
+            // console.log(dataLen);
+            console.log(data);
+            setAbout(data);
+        });
+        return aboutListener;
+    };
+
+    //Function 6 GetPost
+    //userPosts/${userid}
+    // limitToLast(5)
+
+    const extractArticle = (
+        snapshot: DataSnapshot,
+        articleType: string = 'horizontal',
+    ): IArticle | undefined => {
+        if (!snapshot.key) return;
+        if (!process.env.IMAGEKIT_ENDPOINT) return;
+
+        const childVal: IPostData = snapshot.val();
+        if (!childVal) return;
+
+        const image = childVal.remoteURL
+            ? childVal.remoteURL.replace(
+                  'https://firebasestorage.googleapis.com',
+                  process.env.IMAGEKIT_ENDPOINT,
+              )
+            : undefined;
+
+        return {
+            ...childVal,
+            id: snapshot.key,
+            image: image,
+            type: articleType,
+            timestamp: Number(childVal.createdAt),
+        };
+    };
+
+    const extractArticles = (snapshot: DataSnapshot) => {
+        const li: IArticle[] = [];
+        snapshot.forEach((childSnapshot: any) => {
+            const article = extractArticle(childSnapshot);
+            if (!article) return;
+
+            li.push(article);
+        });
+
+        return li;
+    };
+
+    const getPopularPosts = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const popularRef = ref(db, `userPosts/${user}`, limitToLast(5));
+        // const popularRef = ref(db, `userPosts/${user.uid}`);
+
+        const popularListener = onValue(popularRef, (snapshot) => {
+            const li: IArticle[] = extractArticles(snapshot);
+
+            setPopular(li.reverse());
+        });
+
+        return popularListener;
+    };
+
+    //UPDATE DIS
+    useEffect(() => {
+        const numPostsListener = getNumPost();
+        const numFollowersListener = getNumFollowers();
+        const numFollowingsListener = getNumFollowings();
+        const nameListener = getName();
+        const aboutListener = getAbout();
+        const popularListener = getPopularPosts();
+
+        return () => {
+            numPostsListener?.();
+            numFollowersListener?.();
+            numFollowingsListener?.();
+            nameListener?.();
+            aboutListener?.();
+            popularListener?.();
+        };
+    }, []);
 
     return (
         <Block safe marginTop={sizes.md}>
@@ -77,59 +299,13 @@ const Profile = () => {
                                 source={{uri: user?.avatar}}
                             />
                             <Text h4 center bold>
-                                {user?.name}
+                                {/* {user?.name} */}
+                                {name}
                             </Text>
                             {/* <Text p center white>
                                 {user?.department}
                             </Text> */}
-                            <Block row marginVertical={sizes.m}>
-                                {/* <Button
-                                    white
-                                    outlined
-                                    shadow={false}
-                                    radius={sizes.m}
-                                    onPress={() => {
-                                        alert(`Follow ${user?.name}`);
-                                    }}>
-                                    <Block
-                                        justify="center"
-                                        radius={sizes.m}
-                                        paddingHorizontal={sizes.m}
-                                        color="rgba(255,255,255,0.2)">
-                                        <Text white bold transform="uppercase">
-                                            {t('common.follow')}
-                                        </Text>
-                                    </Block>
-                                </Button> */}
-                                {/* Social media buttons */}
-                                {/* <Button
-                                    shadow={false}
-                                    radius={sizes.m}
-                                    marginHorizontal={sizes.sm}
-                                    color="rgba(255,255,255,0.2)"
-                                    outlined={String(colors.white)}
-                                    onPress={() => handleSocialLink('twitter')}>
-                                    <Ionicons
-                                        size={18}
-                                        name="logo-twitter"
-                                        color={colors.white}
-                                    />
-                                </Button>
-                                <Button
-                                    shadow={false}
-                                    radius={sizes.m}
-                                    color="rgba(255,255,255,0.2)"
-                                    outlined={String(colors.white)}
-                                    onPress={() =>
-                                        handleSocialLink('dribbble')
-                                    }>
-                                    <Ionicons
-                                        size={18}
-                                        name="logo-dribbble"
-                                        color={colors.white}
-                                    />
-                                </Button> */}
-                            </Block>
+                            <Block row marginVertical={sizes.m}></Block>
                         </Block>
                     </Image>
 
@@ -153,18 +329,20 @@ const Profile = () => {
                             paddingVertical={sizes.sm}
                             renderToHardwareTextureAndroid>
                             <Block align="center">
-                                <Text h5>{user?.stats?.posts}</Text>
+                                <Text h5>{numPosts}</Text>
                                 <Text>{t('profile.posts')}</Text>
                             </Block>
                             <Block align="center">
                                 <Text h5>
-                                    {(user?.stats?.followers || 0) / 1000}k
+                                    {/* {(user?.stats?.followers || 0) / 1000}k */}
+                                    {numFollowers}
                                 </Text>
                                 <Text>{t('profile.followers')}</Text>
                             </Block>
                             <Block align="center">
                                 <Text h5>
-                                    {(user?.stats?.following || 0) / 1000}k
+                                    {/* {(user?.stats?.following || 0) / 1000}k */}
+                                    {numFollowings}
                                 </Text>
                                 <Text>{t('profile.following')}</Text>
                             </Block>
@@ -181,53 +359,30 @@ const Profile = () => {
                             {t('profile.aboutMe')}
                         </Text>
                         <Text p lineHeight={26}>
-                            {user?.about}
+                            {about}
                         </Text>
                     </Block>
 
                     {/* profile: photo album */}
-                    <Block paddingHorizontal={sizes.sm} marginTop={sizes.s}>
-                        <Block row align="center" justify="space-between">
-                            <Text h5 semibold>
-                                {t('profile.recentPosts')}
-                            </Text>
-                            <Button>
-                                {/* <Text p primary semibold>
-                                    {t('common.viewall')}
-                                </Text> */}
-                            </Button>
-                        </Block>
-                        <Block row justify="space-between" wrap="wrap">
-                            <Image
-                                resizeMode="cover"
-                                source={assets?.photo1}
-                                style={{
-                                    width:
-                                        IMAGE_VERTICAL_SIZE + IMAGE_MARGIN / 2,
-                                    height:
-                                        IMAGE_VERTICAL_SIZE * 2 +
-                                        IMAGE_VERTICAL_MARGIN,
-                                }}
-                            />
-                            <Block marginLeft={sizes.m}>
-                                <Image
-                                    resizeMode="cover"
-                                    source={assets?.photo2}
-                                    marginBottom={IMAGE_VERTICAL_MARGIN}
-                                    style={{
-                                        height: IMAGE_VERTICAL_SIZE,
-                                        width: IMAGE_VERTICAL_SIZE,
-                                    }}
+                    <Block
+                        scroll
+                        paddingHorizontal={sizes.padding}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{paddingBottom: sizes.l}}>
+                        <Block
+                            row
+                            wrap="wrap"
+                            justify="space-between"
+                            marginTop={sizes.sm}>
+                            {recent?.map((article) => (
+                                <ArticleCard
+                                    article={article}
+                                    handlePress={() =>
+                                        handleArticlePress(article)
+                                    }
+                                    key={`card-${article?.id}-${Math.random()}`}
                                 />
-                                <Image
-                                    resizeMode="cover"
-                                    source={assets?.photo3}
-                                    style={{
-                                        height: IMAGE_VERTICAL_SIZE,
-                                        width: IMAGE_VERTICAL_SIZE,
-                                    }}
-                                />
-                            </Block>
+                            ))}
                         </Block>
                     </Block>
                 </Block>
