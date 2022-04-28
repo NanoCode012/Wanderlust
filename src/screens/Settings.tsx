@@ -1,9 +1,11 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
 import {useNavigation} from '@react-navigation/native';
 import {Block, Button, Image, Text, ArticleFull, Input} from '../components/';
 import {TouchableOpacity} from 'react-native';
+import {getAuth} from 'firebase/auth';
+import {getDatabase, onValue, ref, update} from 'firebase/database';
 
 const UserInfoCard = () => {
     const {t} = useTranslation();
@@ -11,10 +13,54 @@ const UserInfoCard = () => {
     const {assets, colors, fonts, gradients, sizes} = useTheme();
 
     const [aboutMe, setAboutMe] = useState('');
+    const [saved, setSaved] = useState(false);
 
     const handleSave = () => {
-        console.log('save');
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const updates = {
+            [`users/${user.uid}/aboutMe`]: aboutMe ? aboutMe : null,
+        };
+
+        update(ref(db), updates)
+            .then(() => {
+                setSaved(true);
+            })
+            .catch((e) => console.log(e));
     };
+
+    const getUserAboutMe = () => {
+        const db = getDatabase();
+        const user = getAuth().currentUser;
+
+        if (!user) return;
+
+        const aboutMeRef = ref(db, `users/${user.uid}/aboutMe`);
+        const aboutMeListener = onValue(aboutMeRef, (snapshot) => {
+            const data = snapshot.val();
+
+            if (!data) return;
+
+            setAboutMe(data);
+        });
+        return aboutMeListener;
+    };
+
+    useEffect(() => {
+        const aboutMeListener = getUserAboutMe();
+
+        return () => {
+            aboutMeListener?.();
+        };
+    }, []);
+
+    useEffect(() => {
+        setSaved(false);
+    }, [aboutMe]);
+
     return (
         <Block card>
             <Block row>
@@ -38,7 +84,7 @@ const UserInfoCard = () => {
                 />
                 <Button
                     flex={1}
-                    gradient={gradients.primary}
+                    gradient={saved ? gradients.success : gradients.primary}
                     marginBottom={sizes.base}
                     onPress={handleSave}>
                     <Text white bold transform="uppercase">
