@@ -171,8 +171,6 @@ const Button = ({
     /* handle onPress event */
     const handlePress = useCallback(
         (event) => {
-            if (disabled) return;
-
             onPress?.(event);
 
             /* vibrate onPress */
@@ -185,7 +183,7 @@ const Button = ({
                 Haptics.selectionAsync();
             }
         },
-        [haptic, vibrate, vibrateRepeat, onPress, disabled],
+        [haptic, vibrate, vibrateRepeat, onPress],
     );
 
     if (round) {
@@ -218,6 +216,7 @@ const Button = ({
     if (gradient) {
         return (
             <TouchableOpacity
+                disabled={disabled}
                 {...buttonID}
                 activeOpacity={activeOpacity}
                 onPress={handlePress}
@@ -244,6 +243,7 @@ const Button = ({
 
         return (
             <TouchableOpacity
+                disabled={disabled}
                 {...buttonID}
                 activeOpacity={activeOpacity}
                 onPress={handlePress}
@@ -260,6 +260,7 @@ const Button = ({
 
     return (
         <TouchableOpacity
+            disabled={disabled}
             {...buttonID}
             activeOpacity={activeOpacity}
             onPress={handlePress}
