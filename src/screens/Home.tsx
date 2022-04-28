@@ -12,8 +12,7 @@ import {
     ArticleCard,
     ImageSelector,
 } from '../components/';
-import {IArticle} from '../constants/types';
-import * as ImagePicker from 'expo-image-picker';
+import {IArticle, IPostData} from '../constants/types';
 import {
     getDatabase,
     ref as dbRef,
@@ -41,20 +40,6 @@ import {
 import {getAuth, User} from 'firebase/auth';
 
 const isAndroid = Platform.OS === 'android';
-
-interface IPostData {
-    title: string;
-    description: string;
-    createdAt: object;
-    creator: {
-        id: string;
-        name?: string;
-    };
-    upvotes?: [];
-    numUpvotes: number;
-    localPath?: string | null;
-    remoteURL?: string | null;
-}
 
 const extractArticle = (
     snapshot: DataSnapshot,
