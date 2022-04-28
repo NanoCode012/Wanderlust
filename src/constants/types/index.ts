@@ -147,3 +147,17 @@ export interface INotification {
         | 'extras'
         | 'office';
 }
+
+export interface IPostData {
+    title: string;
+    description: string;
+    createdAt: object;
+    creator: {
+        id: string;
+        name?: string;
+    };
+    upvotes?: [];
+    numUpvotes: number;
+    localPath?: string | null;
+    remoteURL?: string | null;
+}
