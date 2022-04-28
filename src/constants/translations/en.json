@@ -126,7 +126,9 @@
     "settings": {
         "userInfo": "User Info",
         "aboutMePlaceholder": "Say something about yourself!",
-        "userSecurity": "User Security"
+        "userSecurity": "User Security",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password"
     },
     "language": {
         "en": "EN",
