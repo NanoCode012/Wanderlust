@@ -11,8 +11,8 @@ import {
 import Block from './Block';
 import Text from './Text';
 
-import useTheme from '../hooks/useTheme';
 import {IInputProps} from '../constants/types';
+import {useData, useTheme} from '../hooks';
 
 const Input = ({
     id = 'Input',
@@ -44,6 +44,7 @@ const Input = ({
 }: IInputProps) => {
     const {assets, colors, sizes} = useTheme();
     const [isFocused, setFocused] = useState(false);
+    const {isDark} = useData();
 
     const handleFocus = useCallback(
         (event, focus) => {
@@ -156,6 +157,7 @@ const Input = ({
                     placeholderTextColor={inputColor}
                     onFocus={(event) => handleFocus(event, true)}
                     onBlur={(event) => handleFocus(event, false)}
+                    keyboardAppearance={isDark ? 'dark' : 'light'}
                 />
                 {danger && assets.warning && (
                     <Image
