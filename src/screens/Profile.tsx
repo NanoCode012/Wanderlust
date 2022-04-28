@@ -5,15 +5,8 @@ import {useNavigation} from '@react-navigation/core';
 import {ArticleCard, Block, Button, Image, Text} from '../components/';
 import {useData, useTheme, useTranslation} from '../hooks/';
 import {getAuth} from 'firebase/auth';
-import {
-    getDatabase,
-    ref,
-    onValue,
-    limitToLast,
-    DataSnapshot,
-    query,
-} from 'firebase/database';
-import {IArticle, IPostData} from '../constants/types';
+import {getDatabase, ref, onValue, limitToLast, query} from 'firebase/database';
+import {IArticle} from '../constants/types';
 import {extractArticle} from '../constants/functions/article';
 
 const isAndroid = Platform.OS === 'android';

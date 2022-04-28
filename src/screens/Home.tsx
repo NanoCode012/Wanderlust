@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {Linking, Platform} from 'react-native';
+import {Platform} from 'react-native';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
 import {useNavigation} from '@react-navigation/core';
@@ -19,24 +19,12 @@ import {
     push,
     serverTimestamp,
     update,
-    Database,
     onValue,
     query,
-    orderByKey,
     limitToLast,
-    orderByValue,
-    limitToFirst,
     orderByChild,
-    get,
-    DataSnapshot,
 } from 'firebase/database';
-import {
-    getStorage,
-    ref as storageRef,
-    StorageError,
-    uploadBytesResumable,
-    getDownloadURL,
-} from 'firebase/storage';
+import {StorageError} from 'firebase/storage';
 import {getAuth, User} from 'firebase/auth';
 import {extractArticle, extractArticles} from '../constants/functions/article';
 
