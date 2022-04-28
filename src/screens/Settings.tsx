@@ -9,8 +9,7 @@ import {getDatabase, onValue, ref, update} from 'firebase/database';
 
 const UserInfoCard = () => {
     const {t} = useTranslation();
-    const {article} = useData();
-    const {assets, colors, fonts, gradients, sizes} = useTheme();
+    const {assets, gradients, sizes} = useTheme();
 
     const [aboutMe, setAboutMe] = useState('');
     const [saved, setSaved] = useState(false);
