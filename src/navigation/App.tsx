@@ -19,6 +19,10 @@ export default () => {
         };
     }, [isDark]);
 
+    useEffect(() => {
+        StatusBar.setHidden(true);
+    }, []);
+
     // load custom fonts
     const [fontsLoaded] = useFonts({
         'OpenSans-Light': theme.assets.OpenSansLight,
