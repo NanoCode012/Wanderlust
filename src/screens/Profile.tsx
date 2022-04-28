@@ -13,30 +13,15 @@ import {
     DataSnapshot,
     query,
 } from 'firebase/database';
-import {IArticle} from '../constants/types';
+import {IArticle, IPostData} from '../constants/types';
 
 const isAndroid = Platform.OS === 'android';
-
-interface IPostData {
-    title: string;
-    description: string;
-    createdAt: object;
-    creator: {
-        id: string;
-        name?: string;
-    };
-    upvotes?: [];
-    numUpvotes: number;
-    localPath?: string | null;
-    remoteURL?: string | null;
-}
 
 const Profile = () => {
     const {t} = useTranslation();
     const navigation = useNavigation();
     const {assets, colors, sizes} = useTheme();
 
-    //USESSTATE CHANGES HERE BRUH
     const [numPosts, setNumPosts] = useState(0);
     const [numFollowers, setNumFollowers] = useState(0);
     const [numFollowings, setNumFollowings] = useState(0);
@@ -44,13 +29,6 @@ const Profile = () => {
     const [aboutMe, setAboutMe] = useState('');
     const [recent, setRecent] = useState<IArticle[]>([]);
     const {handleArticle} = useData();
-
-    const IMAGE_SIZE = (sizes.width - (sizes.padding + sizes.sm) * 2) / 3;
-    const IMAGE_VERTICAL_SIZE =
-        (sizes.width - (sizes.padding + sizes.sm) * 2) / 2;
-    const IMAGE_MARGIN = (sizes.width - IMAGE_SIZE * 3 - sizes.padding * 2) / 2;
-    const IMAGE_VERTICAL_MARGIN =
-        (sizes.width - (IMAGE_VERTICAL_SIZE + sizes.sm) * 2) / 2;
 
     const handleArticlePress = useCallback(
         (article: IArticle) => {
