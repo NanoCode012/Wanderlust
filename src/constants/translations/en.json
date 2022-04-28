@@ -50,7 +50,8 @@
         },
         "upvote": "Upvote",
         "cancel": "Cancel",
-        "close": "Close"
+        "close": "Close",
+        "delete": "Delete"
     },
     "app": {
         "name": "Wanderlust",
