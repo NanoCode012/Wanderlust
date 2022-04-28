@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {Platform, Linking} from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+import {Platform} from 'react-native';
 import {useNavigation} from '@react-navigation/core';
 
 import {ArticleCard, Block, Button, Image, Text} from '../components/';
@@ -12,16 +11,7 @@ import {
     onValue,
     limitToLast,
     DataSnapshot,
-    push,
-    serverTimestamp,
-    update,
-    Database,
     query,
-    orderByKey,
-    orderByValue,
-    limitToFirst,
-    orderByChild,
-    get,
 } from 'firebase/database';
 import {IArticle} from '../constants/types';
 
@@ -42,7 +32,6 @@ interface IPostData {
 }
 
 const Profile = () => {
-    const {user} = useData();
     const {t} = useTranslation();
     const navigation = useNavigation();
     const {assets, colors, sizes} = useTheme();
@@ -52,15 +41,9 @@ const Profile = () => {
     const [numFollowers, setNumFollowers] = useState(0);
     const [numFollowings, setNumFollowings] = useState(0);
     const [name, setName] = useState('');
-    const [about, setAbout] = useState('');
-    // const [popular, setPopular] = useState<IArticle[]>([]);
-    const [popular, setPopular] = useState(0);
-    const [recent, setRecent] = useState<IArticle[]>();
-    const [tab, setTab] = useState<number>(0);
+    const [aboutMe, setAboutMe] = useState('');
+    const [recent, setRecent] = useState<IArticle[]>([]);
     const {handleArticle} = useData();
-
-    const [following, setFollowing] = useState<IArticle[]>([]);
-    const [articles, setArticles] = useState<IArticle[]>([]);
 
     const IMAGE_SIZE = (sizes.width - (sizes.padding + sizes.sm) * 2) / 3;
     const IMAGE_VERTICAL_SIZE =
@@ -68,14 +51,6 @@ const Profile = () => {
     const IMAGE_MARGIN = (sizes.width - IMAGE_SIZE * 3 - sizes.padding * 2) / 2;
     const IMAGE_VERTICAL_MARGIN =
         (sizes.width - (IMAGE_VERTICAL_SIZE + sizes.sm) * 2) / 2;
-
-    //EXPERIMENT
-    const handleArticles = useCallback(
-        (tab: number) => {
-            setTab(tab);
-        },
-        [setTab, setArticles],
-    );
 
     const handleArticlePress = useCallback(
         (article: IArticle) => {
@@ -85,7 +60,6 @@ const Profile = () => {
         [handleArticle],
     );
 
-    //FUNCTION 1 get number of posts
     const getNumPost = () => {
         const db = getDatabase();
         const user = getAuth().currentUser;
@@ -97,14 +71,12 @@ const Profile = () => {
             const data = snapshot.val();
             if (data === null) return;
             var dataLen = Object.keys(data).length;
-            console.log(dataLen);
 
             setNumPosts(dataLen);
         });
         return numPostsListener;
     };
 
-    //Function 2 Set Number Of Followers
     const getNumFollowers = () => {
         const db = getDatabase();
         const user = getAuth().currentUser;
@@ -116,14 +88,12 @@ const Profile = () => {
             const data = snapshot.val();
             if (data === null) return;
             var dataLen = Object.keys(data).length;
-            console.log(dataLen);
 
             setNumFollowers(dataLen);
         });
         return numFollowersListener;
     };
 
-    //Function 3 Set Number of Followings
     const getNumFollowings = () => {
         const db = getDatabase();
         const user = getAuth().currentUser;
@@ -135,14 +105,12 @@ const Profile = () => {
             const data = snapshot.val();
             if (data === null) return;
             var dataLen = Object.keys(data).length;
-            console.log(dataLen);
 
             setNumFollowings(dataLen);
         });
         return numFollowingsListener;
     };
 
-    //Function 4 Set UserName
     const getName = () => {
         const db = getDatabase();
         const user = getAuth().currentUser;
@@ -152,37 +120,28 @@ const Profile = () => {
         const nameRef = ref(db, `users/${user.uid}/name`);
         const nameListener = onValue(nameRef, (snapshot) => {
             const data = snapshot.val();
-            if (data === null) return;
-            // var dataLen = Object.keys(data).length;
-            // console.log(dataLen);
-            console.log(data);
+            if (!data) return;
+
             setName(data);
         });
         return nameListener;
     };
 
-    //Function 5 Set AboutMe
-    const getAbout = () => {
+    const getAboutMe = () => {
         const db = getDatabase();
         const user = getAuth().currentUser;
 
         if (!user) return;
 
-        const aboutRef = ref(db, `users/${user.uid}/name`);
-        const aboutListener = onValue(aboutRef, (snapshot) => {
+        const aboutMeRef = ref(db, `users/${user.uid}/aboutMe`);
+        const aboutMe = onValue(aboutMeRef, (snapshot) => {
             const data = snapshot.val();
-            if (data === null) return;
-            // var dataLen = Object.keys(data).length;
-            // console.log(dataLen);
-            console.log(data);
-            setAbout(data);
-        });
-        return aboutListener;
-    };
+            if (!data) return;
 
-    //Function 6 GetPost
-    //userPosts/${userid}
-    // limitToLast(5)
+            setAboutMe(data);
+        });
+        return aboutMe;
+    };
 
     const extractArticle = (
         snapshot: DataSnapshot,
@@ -210,52 +169,52 @@ const Profile = () => {
         };
     };
 
-    const extractArticles = (snapshot: DataSnapshot) => {
-        const li: IArticle[] = [];
-        snapshot.forEach((childSnapshot: any) => {
-            const article = extractArticle(childSnapshot);
-            if (!article) return;
-
-            li.push(article);
-        });
-
-        return li;
-    };
-
-    const getPopularPosts = () => {
+    const getRecentPosts = () => {
         const db = getDatabase();
         const user = getAuth().currentUser;
 
         if (!user) return;
 
-        const popularRef = ref(db, `userPosts/${user}`, limitToLast(5));
-        // const popularRef = ref(db, `userPosts/${user.uid}`);
+        const listenerRef = query(
+            ref(db, `userPosts/${user.uid}`),
+            limitToLast(5),
+        );
 
-        const popularListener = onValue(popularRef, (snapshot) => {
-            const li: IArticle[] = extractArticles(snapshot);
+        const recentListener = onValue(listenerRef, (snapshot) => {
+            setRecent([]);
 
-            setPopular(li.reverse());
+            snapshot.forEach((child) => {
+                if (!child.val()) return;
+
+                const childRef = ref(db, `posts/${child.key}`);
+                onValue(childRef, (childSnapshot) => {
+                    const li = extractArticle(childSnapshot);
+                    // console.log(li);
+
+                    if (!li) return;
+                    setRecent((prevItem) => [li, ...prevItem]);
+                });
+            });
         });
 
-        return popularListener;
+        return recentListener;
     };
 
-    //UPDATE DIS
     useEffect(() => {
         const numPostsListener = getNumPost();
         const numFollowersListener = getNumFollowers();
         const numFollowingsListener = getNumFollowings();
         const nameListener = getName();
-        const aboutListener = getAbout();
-        const popularListener = getPopularPosts();
+        const aboutMeListener = getAboutMe();
+        const recentListener = getRecentPosts();
 
         return () => {
             numPostsListener?.();
             numFollowersListener?.();
             numFollowingsListener?.();
             nameListener?.();
-            aboutListener?.();
-            popularListener?.();
+            aboutMeListener?.();
+            recentListener?.();
         };
     }, []);
 
@@ -296,15 +255,13 @@ const Profile = () => {
                                 width={64}
                                 height={64}
                                 marginBottom={sizes.sm}
-                                source={{uri: user?.avatar}}
+                                source={{
+                                    uri: 'https://images.unsplash.com/photo-1569516449771-41c89ee14ca3?fit=crop&w=150&q=80',
+                                }}
                             />
                             <Text h4 center bold>
-                                {/* {user?.name} */}
                                 {name}
                             </Text>
-                            {/* <Text p center white>
-                                {user?.department}
-                            </Text> */}
                             <Block row marginVertical={sizes.m}></Block>
                         </Block>
                     </Image>
@@ -333,17 +290,11 @@ const Profile = () => {
                                 <Text>{t('profile.posts')}</Text>
                             </Block>
                             <Block align="center">
-                                <Text h5>
-                                    {/* {(user?.stats?.followers || 0) / 1000}k */}
-                                    {numFollowers}
-                                </Text>
+                                <Text h5>{numFollowers}</Text>
                                 <Text>{t('profile.followers')}</Text>
                             </Block>
                             <Block align="center">
-                                <Text h5>
-                                    {/* {(user?.stats?.following || 0) / 1000}k */}
-                                    {numFollowings}
-                                </Text>
+                                <Text h5>{numFollowings}</Text>
                                 <Text>{t('profile.following')}</Text>
                             </Block>
                         </Block>
@@ -359,11 +310,11 @@ const Profile = () => {
                             {t('profile.aboutMe')}
                         </Text>
                         <Text p lineHeight={26}>
-                            {about}
+                            {aboutMe}
                         </Text>
                     </Block>
 
-                    {/* profile: photo album */}
+                    {/* article list */}
                     <Block
                         scroll
                         paddingHorizontal={sizes.padding}
