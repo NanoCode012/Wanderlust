@@ -19,6 +19,8 @@ const UserInfoCard = () => {
 
     const [aboutMe, setAboutMe] = useState('');
     const [saved, setSaved] = useState(false);
+    const [error, setError] = useState(false);
+    const [buttonGradient, setButtonGradient] = useState<string[]>();
 
     const handleSave = () => {
         const db = getDatabase();
@@ -34,7 +36,10 @@ const UserInfoCard = () => {
             .then(() => {
                 setSaved(true);
             })
-            .catch((e) => console.log(e));
+            .catch((e) => {
+                // console.log(e);
+                setError(true);
+            });
     };
 
     const getUserAboutMe = () => {
@@ -64,7 +69,18 @@ const UserInfoCard = () => {
 
     useEffect(() => {
         setSaved(false);
+        setError(false);
     }, [aboutMe]);
+
+    useEffect(() => {
+        if (error) {
+            setButtonGradient(gradients.danger);
+        } else if (saved) {
+            setButtonGradient(gradients.success);
+        } else {
+            setButtonGradient(gradients.primary);
+        }
+    }, [error, saved]);
 
     return (
         <Block card>
@@ -89,7 +105,7 @@ const UserInfoCard = () => {
                 />
                 <Button
                     flex={1}
-                    gradient={saved ? gradients.success : gradients.primary}
+                    gradient={buttonGradient}
                     marginBottom={sizes.base}
                     onPress={handleSave}>
                     <Text white bold transform="uppercase">
@@ -114,6 +130,8 @@ const UserSecurityCard = () => {
     const [newPassword, setNewPassword] = useState('');
     const [saved, setSaved] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(false);
+    const [buttonGradient, setButtonGradient] = useState<string[]>();
 
     const [isValid, setIsValid] = useState<IPasswordValidation>({
         currentPassword: false,
@@ -144,13 +162,19 @@ const UserSecurityCard = () => {
             ?.then(() => changePassword())
             .then(() => {
                 setSaved(true);
-                setIsLoading(false);
             })
-            .catch((e) => console.log(e));
+            .catch((e) => {
+                // console.log(e);
+                setError(true);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     };
 
     useEffect(() => {
         setSaved(false);
+        setError(false);
 
         setIsValid((state) => ({
             ...state,
@@ -158,6 +182,16 @@ const UserSecurityCard = () => {
             newPassword: regex.password.test(newPassword),
         }));
     }, [currentPassword, newPassword]);
+
+    useEffect(() => {
+        if (error) {
+            setButtonGradient(gradients.danger);
+        } else if (saved) {
+            setButtonGradient(gradients.success);
+        } else {
+            setButtonGradient(gradients.primary);
+        }
+    }, [error, saved]);
 
     return (
         <Block card marginTop={sizes.m}>
@@ -193,7 +227,7 @@ const UserSecurityCard = () => {
                 />
                 <Button
                     flex={1}
-                    gradient={saved ? gradients.success : gradients.primary}
+                    gradient={buttonGradient}
                     marginBottom={sizes.base}
                     onPress={handleSave}
                     disabled={
