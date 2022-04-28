@@ -2,10 +2,16 @@ import React, {useEffect, useState} from 'react';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
 import {useNavigation} from '@react-navigation/native';
-import {Block, Button, Image, Text, ArticleFull, Input} from '../components/';
-import {TouchableOpacity} from 'react-native';
-import {getAuth} from 'firebase/auth';
+import {Block, Button, Image, Text, Input} from '../components/';
+import {
+    AuthCredential,
+    EmailAuthProvider,
+    getAuth,
+    reauthenticateWithCredential,
+    updatePassword,
+} from 'firebase/auth';
 import {getDatabase, onValue, ref, update} from 'firebase/database';
+import * as regex from '../constants/regex';
 
 const UserInfoCard = () => {
     const {t} = useTranslation();
@@ -95,16 +101,64 @@ const UserInfoCard = () => {
     );
 };
 
+interface IPasswordValidation {
+    currentPassword: boolean;
+    newPassword: boolean;
+}
+
 const UserSecurityCard = () => {
     const {t} = useTranslation();
-    const {article} = useData();
-    const {assets, colors, fonts, gradients, sizes} = useTheme();
+    const {assets, gradients, sizes} = useTheme();
 
-    const [password, setPassword] = useState('');
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [saved, setSaved] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [isValid, setIsValid] = useState<IPasswordValidation>({
+        currentPassword: false,
+        newPassword: false,
+    });
+
+    const reauthenticate = () => {
+        var user = getAuth().currentUser;
+
+        if (!user || !user.email) return;
+
+        var cred = EmailAuthProvider.credential(user.email, currentPassword);
+
+        return reauthenticateWithCredential(user, cred);
+    };
+
+    const changePassword = () => {
+        var user = getAuth().currentUser;
+
+        if (!user) return;
+
+        return updatePassword(user, newPassword);
+    };
 
     const handleSave = () => {
-        console.log('save');
+        setIsLoading(true);
+        reauthenticate()
+            ?.then(() => changePassword())
+            .then(() => {
+                setSaved(true);
+                setIsLoading(false);
+            })
+            .catch((e) => console.log(e));
     };
+
+    useEffect(() => {
+        setSaved(false);
+
+        setIsValid((state) => ({
+            ...state,
+            currentPassword: currentPassword.length > 0,
+            newPassword: regex.password.test(newPassword),
+        }));
+    }, [currentPassword, newPassword]);
+
     return (
         <Block card marginTop={sizes.m}>
             <Block row>
@@ -120,17 +174,31 @@ const UserSecurityCard = () => {
             </Block>
             <Block padding={sizes.s} justify="space-between">
                 <Input
-                    label={t('common.password')}
+                    secureTextEntry
+                    label={t('settings.currentPassword')}
                     marginBottom={sizes.sm}
                     placeholder={t('common.passwordPlaceholder')}
-                    value={password}
-                    onChangeText={(value) => setPassword(value)}
+                    value={currentPassword}
+                    onChangeText={(value) => setCurrentPassword(value)}
+                />
+                <Input
+                    secureTextEntry
+                    label={t('settings.newPassword')}
+                    marginBottom={sizes.sm}
+                    placeholder={t('common.passwordPlaceholder')}
+                    value={newPassword}
+                    success={Boolean(newPassword && isValid.newPassword)}
+                    danger={Boolean(newPassword && !isValid.newPassword)}
+                    onChangeText={(value) => setNewPassword(value)}
                 />
                 <Button
                     flex={1}
-                    gradient={gradients.primary}
+                    gradient={saved ? gradients.success : gradients.primary}
                     marginBottom={sizes.base}
-                    onPress={handleSave}>
+                    onPress={handleSave}
+                    disabled={
+                        Object.values(isValid).includes(false) || isLoading
+                    }>
                     <Text white bold transform="uppercase">
                         Save
                     </Text>
@@ -141,14 +209,12 @@ const UserSecurityCard = () => {
 };
 
 const Settings = () => {
-    const {t} = useTranslation();
-    const navigation = useNavigation();
-    const {article} = useData();
-    const {assets, colors, fonts, gradients, sizes} = useTheme();
+    const {sizes} = useTheme();
     return (
         <Block safe>
             <Block
                 scroll
+                keyboard
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{paddingVertical: sizes.padding}}>
                 <UserInfoCard />
