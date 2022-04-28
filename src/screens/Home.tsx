@@ -12,8 +12,7 @@ import {
     ArticleCard,
     ImageSelector,
 } from '../components/';
-import {IArticle} from '../constants/types';
-import * as ImagePicker from 'expo-image-picker';
+import {IArticle, IPostData} from '../constants/types';
 import {
     getDatabase,
     ref as dbRef,
@@ -39,70 +38,9 @@ import {
     getDownloadURL,
 } from 'firebase/storage';
 import {getAuth, User} from 'firebase/auth';
+import {extractArticle, extractArticles} from '../constants/functions/article';
 
 const isAndroid = Platform.OS === 'android';
-
-interface IPostData {
-    title: string;
-    description: string;
-    createdAt: object;
-    creator: {
-        id: string;
-        name?: string;
-    };
-    upvotes?: [];
-    numUpvotes: number;
-    localPath?: string | null;
-    remoteURL?: string | null;
-}
-
-const extractArticle = (
-    snapshot: DataSnapshot,
-    articleType: string = 'horizontal',
-): IArticle | undefined => {
-    if (!snapshot.key) return;
-    if (
-        !process.env.IMAGEKIT_ENDPOINT ||
-        !process.env.CLOUDINARY_RESULT_ENDPOINT
-    )
-        return;
-
-    const childVal: IPostData = snapshot.val();
-    if (!childVal) return;
-
-    let image = undefined;
-    if (childVal.remoteURL) {
-        image = childVal.remoteURL.replace(
-            'https://firebasestorage.googleapis.com',
-            process.env.IMAGEKIT_ENDPOINT,
-        );
-
-        image = image.replace(
-            process.env.CLOUDINARY_RESULT_ENDPOINT,
-            process.env.IMAGEKIT_ENDPOINT,
-        );
-    }
-
-    return {
-        ...childVal,
-        id: snapshot.key,
-        image: image,
-        type: articleType,
-        timestamp: Number(childVal.createdAt),
-    };
-};
-
-const extractArticles = (snapshot: DataSnapshot) => {
-    const li: IArticle[] = [];
-    snapshot.forEach((childSnapshot) => {
-        const article = extractArticle(childSnapshot);
-        if (!article) return;
-
-        li.push(article);
-    });
-
-    return li;
-};
 
 const Home = () => {
     const {t} = useTranslation();
