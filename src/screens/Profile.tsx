@@ -58,8 +58,8 @@ const Profile = () => {
         const numFollowersRef = ref(db, `followers/${user.uid}`);
         const numFollowersListener = onValue(numFollowersRef, (snapshot) => {
             const data = snapshot.val();
-            if (data === null) return;
-            var dataLen = Object.keys(data).length;
+
+            var dataLen = data !== null ? Object.keys(data).length : 0;
 
             setNumFollowers(dataLen);
         });
@@ -75,8 +75,8 @@ const Profile = () => {
         const numFollowingsRef = ref(db, `following/${user.uid}`);
         const numFollowingsListener = onValue(numFollowingsRef, (snapshot) => {
             const data = snapshot.val();
-            if (data === null) return;
-            var dataLen = Object.keys(data).length;
+
+            var dataLen = data !== null ? Object.keys(data).length : 0;
 
             setNumFollowings(dataLen);
         });
@@ -92,9 +92,8 @@ const Profile = () => {
         const nameRef = ref(db, `users/${user.uid}/name`);
         const nameListener = onValue(nameRef, (snapshot) => {
             const data = snapshot.val();
-            if (!data) return;
-
-            setName(data);
+            if (data === null) setName('Anonymous');
+            else setName(data);
         });
         return nameListener;
     };

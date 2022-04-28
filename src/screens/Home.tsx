@@ -213,9 +213,8 @@ const Home = () => {
                 // console.log('-------followers:');
                 // console.log(snapshot);
                 const data = snapshot.val();
-                if (!data) return;
-
-                setFollowers(Object.keys(data));
+                if (data === null) setFollowers([]);
+                else setFollowers(Object.keys(data));
             },
             (e) => console.log(e),
         );
