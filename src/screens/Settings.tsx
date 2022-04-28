@@ -1,10 +1,8 @@
 import React, {useEffect, useState} from 'react';
 
-import {useData, useTheme, useTranslation} from '../hooks/';
-import {useNavigation} from '@react-navigation/native';
+import {useTheme, useTranslation} from '../hooks/';
 import {Block, Button, Image, Text, Input} from '../components/';
 import {
-    AuthCredential,
     EmailAuthProvider,
     getAuth,
     reauthenticateWithCredential,

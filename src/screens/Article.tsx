@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React from 'react';
 
 import {useData, useTheme, useTranslation} from '../hooks/';
 import {useNavigation} from '@react-navigation/native';
