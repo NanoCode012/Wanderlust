@@ -7,7 +7,10 @@ import {useData, useTheme, useTranslation} from '../hooks/';
 import {getAuth} from 'firebase/auth';
 import {getDatabase, ref, onValue, limitToLast, query} from 'firebase/database';
 import {IArticle} from '../constants/types';
-import {extractArticle} from '../constants/functions/article';
+import {
+    extractArticle,
+    getUpdatedArticleInArrayIfExistsOrPush,
+} from '../constants/functions/article';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -137,7 +140,9 @@ const Profile = () => {
                     // console.log(li);
 
                     if (!li) return;
-                    setRecent((prevItem) => [li, ...prevItem]);
+                    setRecent((prevItem) =>
+                        getUpdatedArticleInArrayIfExistsOrPush(prevItem, li),
+                    );
                 });
             });
         });

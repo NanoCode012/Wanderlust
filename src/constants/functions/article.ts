@@ -38,3 +38,19 @@ export const extractArticles = (snapshot: DataSnapshot) => {
 
     return li;
 };
+
+export const getUpdatedArticleInArrayIfExistsOrPush = (
+    currentArray: IArticle[],
+    newValue: IArticle,
+    insertAtEnd: Boolean = true,
+) => {
+    const eleIndex = currentArray.findIndex((obj) => obj.id === newValue.id);
+    if (eleIndex === -1)
+        return insertAtEnd
+            ? [...currentArray, newValue]
+            : [newValue, ...currentArray];
+
+    return currentArray.map((p) =>
+        p.id === newValue.id ? {...p, ...newValue} : p,
+    );
+};

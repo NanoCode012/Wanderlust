@@ -26,7 +26,11 @@ import {
 } from 'firebase/database';
 import {StorageError} from 'firebase/storage';
 import {getAuth, User} from 'firebase/auth';
-import {extractArticle, extractArticles} from '../constants/functions/article';
+import {
+    extractArticle,
+    extractArticles,
+    getUpdatedArticleInArrayIfExistsOrPush,
+} from '../constants/functions/article';
 
 const isAndroid = Platform.OS === 'android';
 
@@ -226,13 +230,13 @@ const Home = () => {
         if (!user) return;
 
         const db = getDatabase();
-        const followingRef = query(
+        const userFollowingRef = query(
             dbRef(db, `userFollowingPosts/${user.uid}`),
             limitToLast(6),
         );
 
-        const followingListener = onValue(
-            followingRef,
+        const userFollowingListener = onValue(
+            userFollowingRef,
             (snapshot) => {
                 // console.log('-------following:');
                 // console.log(snapshot);
@@ -247,24 +251,30 @@ const Home = () => {
                         // console.log(li);
 
                         if (!li) return;
-                        setFollowing((prevItem) => [li, ...prevItem]);
+                        setFollowing((prevItem) =>
+                            getUpdatedArticleInArrayIfExistsOrPush(
+                                prevItem,
+                                li,
+                                false,
+                            ),
+                        );
                     });
                 });
             },
             (e) => console.log(e),
         );
 
-        return followingListener;
+        return userFollowingListener;
     };
 
     // get userFollowingPosts
     useEffect(() => {
-        const followingListener = getUserFollowingPosts();
+        const userFollowingListener = getUserFollowingPosts();
         const followerListener = getFollowers();
         const popularPostsListener = getPopularPosts();
 
         return () => {
-            followingListener?.();
+            userFollowingListener?.();
             followerListener?.();
             popularPostsListener?.();
         };
