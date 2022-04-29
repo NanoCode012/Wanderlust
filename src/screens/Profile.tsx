@@ -44,8 +44,8 @@ const Profile = () => {
         const numPostsRef = ref(db, `userPosts/${user.uid}`);
         const numPostsListener = onValue(numPostsRef, (snapshot) => {
             const data = snapshot.val();
-            if (data === null) return;
-            var dataLen = Object.keys(data).length;
+
+            var dataLen = data !== null ? Object.keys(data).length : 0;
 
             setNumPosts(dataLen);
         });
